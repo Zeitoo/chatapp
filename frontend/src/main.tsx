@@ -6,6 +6,7 @@ import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import Direct from "./Direct.tsx";
 import Chat from "./Chat.tsx";
+import { AppProvider } from "./AppContextProvider.tsx";
 
 import {
 	createBrowserRouter,
@@ -16,12 +17,24 @@ import {
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
-		<Route	path="/"element={<App />}>
-			
-      <Route path="signup" element={<SignUp />}	/>
-			<Route path="signin" element={<SignIn />}	/>
-			<Route path="direct/" element={<Direct />}>
-				<Route path=":chatid" element={<Chat />}	/>
+		<Route
+			path="/"
+			element={<App />}>
+			<Route
+				path="signup"
+				element={<SignUp />}
+			/>
+			<Route
+				path="signin"
+				element={<SignIn />}
+			/>
+			<Route
+				path="direct/"
+				element={<Direct />}>
+				<Route
+					path=":chatid"
+					element={<Chat />}
+				/>
 			</Route>
 			<Route
 				path="*"
@@ -33,6 +46,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
-		<RouterProvider router={router} />
+		<AppProvider>
+			<RouterProvider router={router} />
+		</AppProvider>
 	</StrictMode>
 );

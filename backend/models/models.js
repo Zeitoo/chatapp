@@ -3,8 +3,8 @@ const { pool } = require("../config/config_db.js");
 
 function fecharPool() {
 	setTimeout(() => {
-		pool.end();
-	}, 10000);
+		//pool.end();
+	}, 20000);
 }
 
 const getChats = async (userId) => {
@@ -28,7 +28,7 @@ const getChatParticipants = async (chatId) => {
 };
 
 const getChatMessages = async (chatId) => {
-	const [rows] = pool.query(
+	const [rows] = await pool.query(
 		`SELECT * FROM messages WHERE chat_id = "${chatId}";`
 	);
 
@@ -46,6 +46,15 @@ const getUsers = async (userId) => {
 	return rows;
 };
 
+const getUsersByToken = async (token) => {
+	const [rows] = await pool.query(
+		`SELECT * FROM users WHERE id = (SELECT user_id FROM tokens WHERE token = "${token}");`
+	);
+
+	fecharPool();
+	return rows;
+};
+
 const getUsersByEmail = async (email) => {
 	const [rows] = await pool.query(
 		`SELECT * FROM users WHERE email_address = "${email}";`
@@ -56,13 +65,13 @@ const getUsersByEmail = async (email) => {
 };
 
 const getAccessToken = async (userId) => {
-	const [rows] = await pool.query(`SELECT * FROM tokens WHERE token = "${userId}"`)
+	const [rows] = await pool.query(
+		`SELECT * FROM tokens WHERE token = "${userId}"`
+	);
 
-	fecharPool()
+	fecharPool();
 	return rows;
-}
-
-
+};
 
 const putAccessToken = async (token, userId) => {
 	const [rows] = await pool.query(
@@ -79,5 +88,6 @@ module.exports = {
 	getUsers,
 	getUsersByEmail,
 	getAccessToken,
-	putAccessToken
+	putAccessToken,
+	getUsersByToken
 };

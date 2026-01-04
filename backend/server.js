@@ -17,12 +17,13 @@ const {
 	getUsersByEmail,
 	putAccessToken,
 	getAccessToken,
+	getUsersByToken,
 } = require("./models/models.js");
 
 app.use(express.json());
 app.use(
 	cors({
-		origin: `http://192.168.219.132:2500`,
+		origin: `http://192.168.0.168:2500`,
 		methods: ["GET", "POST", "PUT", "DELETE"],
 		allowedHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
@@ -60,10 +61,10 @@ async function verifyAuth(req, res, next) {
 		.replace("ffff", "");
 
 	const token = req.cookies?.access_token;
-	console.log("Verifying token:", token, "from IP:", ip);
+	//console.log("Verifying token:", token, "from IP:", ip);
 
 	if (!token) {
-		console.log("login required")
+		console.log("login required");
 		return res.status(401).json({
 			message: "Login required...",
 		});
@@ -72,10 +73,7 @@ async function verifyAuth(req, res, next) {
 	try {
 		const tokenData = await getAccessToken(token);
 
-		if (
-			tokenData.length > 0 &&
-			tokenData[0].token.split("ty")[1] === ip
-		) {
+		if (tokenData.length > 0 && tokenData[0].token.split("ty")[1] === ip) {
 			return next(); // autorizado
 		}
 	} catch (err) {
@@ -94,6 +92,18 @@ async function verifyAuth(req, res, next) {
 	});
 }
 
+async function chats(userId) {
+	const chats = await getChats(userId);
+
+	for (let chat in chats) {
+		let chatsObj = chats[chat];
+		const chatMsgs = await getChatMessages(chatsObj.id);
+
+		chatsObj.msgs = chatMsgs;
+	}
+
+	return chats;
+}
 
 app.post("/login", async (req, res) => {
 	const ip = req.socket.remoteAddress;
@@ -128,20 +138,29 @@ app.post("/login", async (req, res) => {
 	});
 });
 
-
 app.get("/", (req, res) => {
 	res.end("hi");
 	//console.log(req.headers, req.cookies.access_token);
 });
 
-app.get("/status", verifyAuth, (req, res) => {
-	return res.status(200).json({
-		message: "Token válido",
-	});
+app.get("/status", verifyAuth, async (req, res) => {
+	const token = req.cookies?.access_token;
+
+	if (token) {
+		const user = await getUsersByToken(token);
+		return res.status(200).json(user);
+	}
 });
 
-app.get("/chats", verifyAuth, (req, res) => {
-	res.json({
-		message: "Chats carregados",
-	});
+app.post("/chats", async (req, res) => {
+	const user = req.body;
+	if (user.user.id) {
+		const chatsWithMsgs = await chats(user.user.id);
+		console.log(chatsWithMsgs)
+		res.status(200).json(chatsWithMsgs);
+	} else {
+		res.json({
+			message: "failed",
+		});
+	}
 });

@@ -11,7 +11,7 @@ function SignIn() {
 	const { setUser } = useUser();
 	const formRef = useRef<HTMLFormElement>(null);
 
-	const host = "http://192.168.219.132:3000";
+	const host = import.meta.env.VITE_API_URL;
 
 	const mandarDados = async (dados: string) => {
 		const response = await fetch(`${host}/login/`, {
@@ -27,8 +27,7 @@ function SignIn() {
 			setUser(data.user);
 			setTimeout(() => {
 				navigate("/");
-			}, 4000)
-
+			}, 500);
 
 			return;
 		}

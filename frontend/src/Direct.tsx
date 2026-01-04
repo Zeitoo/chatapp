@@ -5,8 +5,19 @@ import { Outlet } from "react-router-dom";
 import { useUser } from "./useUser";
 
 function Direct() {
+	const host = import.meta.env.VITE_API_URL;
+
+	type chatsType = {
+		chat_name: String;
+		criado_em: string;
+		id: string;
+		tipo: string;
+		msgs: number[];
+	};
+
+	const [chats, setChats] = useState<chatsType[] | null>(null);
+
 	const { user } = useUser();
-	const currentUser = "User123";
 
 	const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
 
@@ -15,119 +26,19 @@ function Direct() {
 		setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
 	}
 
-	type ChatType = "private" | "group";
-
-	interface Message {
-		author: string;
-		content: string;
-		timestamp: string; // ISO 8601
-	}
-
-	interface Chat {
-		chatId: string;
-		type: ChatType;
-		users: string[];
-		msgs: Message[];
-	}
-
-	const chats: Chat[] = [
-		{
-			chatId: "kh1223c2xg",
-			type: "private",
-			users: ["User123", "User456"],
-			msgs: [
-				{
-					author: "User123",
-					content: "Hello!",
-					timestamp: "2024-06-01T10:00:00Z",
-				},
-				{
-					author: "User456",
-					content: "Hi there!",
-					timestamp: "2024-06-01T10:05:00Z",
-				},
-			],
-		},
-		{
-			chatId: "pr8891aa9",
-			type: "private",
-			users: ["User789", "User123"],
-			msgs: [
-				{
-					author: "User789",
-					content: "Are you coming to the meeting?",
-					timestamp: "2024-06-02T14:20:00Z",
-				},
-				{
-					author: "User123",
-					content: "Yes, I'll be there in 10 minutes.",
-					timestamp: "2024-06-02T14:22:00Z",
-				},
-			],
-		},
-		{
-			chatId: "gr5510zzq",
-			type: "group",
-			users: ["User123", "User456", "User789"],
-			msgs: [
-				{
-					author: "User456",
-					content: "Did anyone finish the assignment?",
-					timestamp: "2024-06-03T08:10:00Z",
-				},
-				{
-					author: "User789",
-					content: "Almost done, just reviewing.",
-					timestamp: "2024-06-03T08:12:00Z",
-				},
-				{
-					author: "User123",
-					content: "Same here.",
-					timestamp: "2024-06-03T08:15:00Z",
-				},
-			],
-		},
-	];
-
-	interface User {
-		userId: string;
-		profileImg: string;
-		userName: string;
-		email: string;
-	}
-
-	const users: User[] = [
-		{
-			userId: "User123",
-			profileImg: "bg-blue-500",
-			userName: "Alex",
-			email: "alex@alex.com",
-		},
-		{
-			userId: "User456",
-			profileImg: "bg-red-500",
-			userName: "Joseph",
-			email: "joseph@joseph.com",
-		},
-		{
-			userId: "User789",
-			profileImg: "bg-green-500",
-			userName: "Maria",
-			email: "maria@maria.com",
-		},
-		{
-			userId: "User999",
-			profileImg: "bg-purple-500",
-			userName: "Daniel",
-			email: "daniel@daniel.com",
-		},
-	];
-
 	useEffect(() => {
-		document.title = "Direct";
+		setTimeout(() => {
+			if (!user) return;
 
-		
-	});
+			fetch(`${host}/chats`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ user }),
+			})
+				.then((res) => res.json())
+				.then((data) => setChats(Array.from(data)));
+		}, 500);
+	}, [user]);
 
 	return (
 		<>
@@ -168,71 +79,34 @@ function Direct() {
 						<a href="">Pedidos</a>
 					</div>
 					<div>
-						{chats.map((chat) => {
-							let chatUserID = chat.users
-								.map((user) => {
-									if (user !== currentUser) {
-										return user;
-									}
-								})
-								.join("");
-
-							let profileImg = users
-								.map((user) => {
-									if (user.userId === chatUserID) {
-										return user.profileImg + " ";
-									}
-								})
-								.filter((element) => !!element)
-								.join("");
-
-							let userName = users.map((user) => {
-								if (user.userId === chatUserID) {
-									return user.userName;
-								}
-							});
-
-							let lastMessage =
-								chat.msgs[chat.msgs.length - 1].content;
-
-							let date = new Date(
-								chat.msgs[chat.msgs.length - 1].timestamp
-							);
-							let hours = date
-								.getHours()
-								.toString()
-								.padStart(2, "0");
-							let minutes = date
-								.getMinutes()
-								.toString()
-								.padStart(2, "0");
-							let formattedTime = `${hours}:${minutes}`;
-
-							return (
-								<div className="flex gap-2 flex-col">
-									<div>
-										<div className="flex items-center justify-start gap-2 my-2">
-											<div
-												className={`${profileImg}  h-15 aspect-square rounded-[200px] `}></div>
-											<div>
-												<p className="text-sm font-medium">
-													{userName}
-												</p>
-												<p>{lastMessage}</p>
-											</div>
-											<div className="items-center ml-auto">
+						<div className="flex gap-2 flex-col">
+							{chats?.map((element) => {
+								return (
+									<>
+										<div>
+											<div className="flex items-center justify-start gap-2 my-2">
+												<div
+													className={`${"profileImg"}  h-15 aspect-square rounded-[200px] `}></div>
 												<div>
-													<p className="text-xs text-gray-500">
-														{formattedTime}
+													<p className="text-sm font-medium">
+														{"userName"}
 													</p>
+													<p>{"lastMessage"}</p>
 												</div>
-												<div className="badge"></div>
+												<div className="items-center ml-auto">
+													<div>
+														<p className="text-xs text-gray-500">
+															{"formattedTime"}
+														</p>
+													</div>
+													<div className="badge"></div>
+												</div>
 											</div>
 										</div>
-									</div>
-								</div>
-							);
-						})}
+									</>
+								);
+							})}
+						</div>
 					</div>
 				</div>
 

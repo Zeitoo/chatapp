@@ -1,18 +1,16 @@
 import { createContext } from "react";
 
-type userType = {
-		id: number;
-		user_name: string;
-		email_address: string;
-		profile_img: Blob;
-		created_at: Date;
-	};
+export type UserType = {
+	id: number;
+	user_name: string;
+	email_address: string;
+	profile_img: string; // URL ou base64
+	created_at: string;  // ISO string
+};
 
-interface appContextType {
-	user: userType | null;
-	setUser: React.Dispatch<React.SetStateAction<userType | null>>;
+export interface AppContextType {
+	user: UserType | null;
+	setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
 }
 
-
-
-export const appContext = createContext<appContextType |undefined>(undefined);
+export const appContext = createContext<AppContextType | undefined>(undefined);

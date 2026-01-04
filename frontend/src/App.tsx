@@ -1,27 +1,15 @@
 import "./App.css";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
-import { appContext } from "./appContext";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useUser } from "./useUser";
+
 function App() {
 	const navigate = useNavigate();
 	const route = useLocation();
 
-	const host = "http://192.168.219.132:3000";
+	const { user, setUser } = useUser();
 
-	useEffect(() => {
-		if (!route.pathname.includes("sign")) {
-			fetch(`${host}/status`, { credentials: "include" }).then((res) => {
-				if (res.status != 200) {
-					navigate("/signin");
-				} else if (res.status === 200) {
-					if (route.pathname === "/") {
-						navigate("/direct");
-					}
-				}
-			});
-		}
-	});
-
+	const host = import.meta.env.VITE_API_URL;
 	type userType = {
 		id: number;
 		user_name: string;
@@ -30,18 +18,30 @@ function App() {
 		created_at: Date;
 	};
 
-	const [user, setUser] = useState<userType | null>(null);
+	useEffect(() => {
+		if (!route.pathname.includes("sign")) {
+			fetch(`${host}/status`, { credentials: "include" }).then((res) => {
+				if (res.status !== 200) {
+					navigate("/signin");
+				} else {
+					res.json().then((data) => {
+						setUser(data[0]);
+					});
+
+					if (route.pathname === "/") {
+						navigate("/direct");
+					}
+				}
+			});
+		}
+	}, [route.pathname]);
 
 	return (
-		<>
-			<appContext.Provider value={{ user, setUser }}>
-				<div>
-					<p>{user?.user_name}</p>
-					<p>{user?.email_address}</p>
-					<Outlet />
-				</div>
-			</appContext.Provider>
-		</>
+		<div>
+			<p>{user?.user_name}</p>
+			<p>{user?.email_address}</p>
+			<Outlet />
+		</div>
 	);
 }
 
