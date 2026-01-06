@@ -95,16 +95,29 @@ async function verifyAuth(req, res, next) {
 async function chats(userId) {
 	const chats = await getChats(userId);
 
-	for (let chat in chats) {
-		let chatsObj = chats[chat];
-		const chatMsgs = await getChatMessages(chatsObj.id);
+	await Promise.all(
+		chats.map(async (chat) => {
+			// buscar mensagens
+			chat.msgs = await getChatMessages(chat.id);
 
-		chatsObj.msgs = chatMsgs;
-	}
+			// se for privado, buscar nome do outro usuário
+			if (chat.tipo === "privado") {
+				const participants = await getChatParticipants(chat.id);
+
+				const otherUser = participants.find(
+					(u) => u.user_id !== userId
+				);
+
+				if (otherUser) {
+					const userData = await getUsers(otherUser.user_id);
+					chat.chat_name = userData[0]?.user_name;
+				}
+			}
+		})
+	);
 
 	return chats;
 }
-
 app.post("/login", async (req, res) => {
 	const ip = req.socket.remoteAddress;
 	const { email, password } = req.body;
@@ -154,6 +167,7 @@ app.get("/status", verifyAuth, async (req, res) => {
 
 app.post("/chats", async (req, res) => {
 	const user = req.body;
+	console.log(user)
 	if (user.user.id) {
 		const chatsWithMsgs = await chats(user.user.id);
 		console.log(chatsWithMsgs)
