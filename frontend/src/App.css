@@ -58,6 +58,11 @@
 	color: white;
 }
 
+.btn-gray {
+	background-color: #3a3a3aa2;
+	color: white;
+}
+
 input.text {
 	padding: 10px;
 	border: 1px solid #ccc;
@@ -148,3 +153,26 @@ input.text {
 	background-color: var(--cinza-2);
 }
 
+.avatar-wrapper {
+	overflow: auto;
+	scrollbar-width: none;
+}
+
+.avatar-wrapper::-webkit-scrollbar {
+	display: none;
+}
+
+.sign-up .error-msg {
+	opacity: 0.7;
+	font-size: 12px;
+	min-height: 1.25rem; /* altura fixa para evitar "pulo" do layout */
+	transition: all 1s ease;
+}
+
+.sign-up input {
+	transition: all 1s ease;
+}
+
+input.error {
+	border-color: rgba(255, 0, 0, 0.377);
+}
