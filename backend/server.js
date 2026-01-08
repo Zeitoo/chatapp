@@ -5,8 +5,8 @@ const dotenv = require("dotenv");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
 const port = 3000;
-const lanAddress = process.env.LAN_HOST;
 dotenv.config();
+const lanAddress = process.env.LAN_HOST;
 
 const {
 	getChats,
@@ -18,12 +18,13 @@ const {
 	putAccessToken,
 	getAccessToken,
 	getUsersByToken,
+	getUsersByName,
 } = require("./models/models.js");
 
 app.use(express.json());
 app.use(
 	cors({
-		origin: `http://192.168.0.168:2500`,
+		origin: lanAddress,
 		methods: ["GET", "POST", "PUT", "DELETE"],
 		allowedHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
@@ -97,27 +98,51 @@ async function chats(userId) {
 
 	await Promise.all(
 		chats.map(async (chat) => {
-			// buscar mensagens
-			chat.msgs = await getChatMessages(chat.id);
+			// buscar mensagens e participantes em paralelo
+			const [msgs, participants] = await Promise.all([
+				getChatMessages(chat.id),
+				getChatParticipants(chat.id),
+			]);
 
-			// se for privado, buscar nome do outro usuário
+			chat.msgs = msgs;
+
+			// chat privado
 			if (chat.tipo === "privado") {
-				const participants = await getChatParticipants(chat.id);
-
 				const otherUser = participants.find(
 					(u) => u.user_id !== userId
 				);
 
-				if (otherUser) {
-					const userData = await getUsers(otherUser.user_id);
-					chat.chat_name = userData[0]?.user_name;
-				}
+				if (!otherUser) return;
+
+				const userData = await getUsers(otherUser.user_id);
+				const user = userData[0];
+
+				if (!user) return;
+
+				chat.chat_name = user.user_name;
+				chat.profile_img = user.profile_img;
+				chat.participants = [user];
+				return;
 			}
+
+			// chat de grupo
+			const participantsData = await Promise.all(
+				participants.map(async (p) => {
+					const userData = await getUsers(p.user_id);
+					const user = userData[0];
+					if (!user) return null;
+					delete user.password_hash;
+					return user;
+				})
+			);
+
+			chat.participants = participantsData.filter(Boolean);
 		})
 	);
 
 	return chats;
 }
+
 app.post("/login", async (req, res) => {
 	const ip = req.socket.remoteAddress;
 	const { email, password } = req.body;
@@ -159,22 +184,27 @@ app.get("/", (req, res) => {
 app.get("/status", verifyAuth, async (req, res) => {
 	const token = req.cookies?.access_token;
 
-	if (token) {
-		const user = await getUsersByToken(token);
-		return res.status(200).json(user);
-	}
+	const user = await getUsersByToken(token);
+	return res.status(200).json(user);
 });
 
 app.post("/chats", async (req, res) => {
 	const user = req.body;
-	console.log(user)
-	if (user.user.id) {
-		const chatsWithMsgs = await chats(user.user.id);
-		console.log(chatsWithMsgs)
+	if (user.id) {
+		const chatsWithMsgs = await chats(user.id);
 		res.status(200).json(chatsWithMsgs);
 	} else {
 		res.json({
 			message: "failed",
 		});
+	}
+});
+
+app.post("/user", async (req, res) => {
+	const userName = req?.body.user_name;
+
+	if (userName) {
+		const user = await getUsersByName(userName);
+		return res.status(200).json(user);
 	}
 });

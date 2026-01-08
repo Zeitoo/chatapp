@@ -7,16 +7,10 @@ function App() {
 	const navigate = useNavigate();
 	const route = useLocation();
 
-	const { user, setUser } = useUser();
+	const {setUser } = useUser();
 
 	const host = import.meta.env.VITE_API_URL;
-	type userType = {
-		id: number;
-		user_name: string;
-		email_address: string;
-		profile_img: Blob;
-		created_at: Date;
-	};
+
 
 	useEffect(() => {
 		if (!route.pathname.includes("sign")) {
@@ -38,8 +32,6 @@ function App() {
 
 	return (
 		<div>
-			<p>{user?.user_name}</p>
-			<p>{user?.email_address}</p>
 			<Outlet />
 		</div>
 	);

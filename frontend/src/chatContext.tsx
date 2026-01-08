@@ -1,8 +1,7 @@
-import { createContext } from "react"
-
-interface ChatContextType {
-  isChatOpen: boolean
-  setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>
+import { createContext } from "react";
+export interface ChatContextType {
+	isChatOpen: boolean;
+	setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const ChatContext = createContext<ChatContextType | null>(null)
+export const ChatContext = createContext<ChatContextType | null>(null);

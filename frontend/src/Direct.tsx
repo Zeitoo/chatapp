@@ -1,29 +1,37 @@
 import "./App.css";
-import { ChatContext } from "./chatContext";
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useUser } from "./useUser";
 
 function Direct() {
 	const host = import.meta.env.VITE_API_URL;
+	const [openedChat, setOpenedChats] = useState<string | null>(null);
 
-	type chatsType = {
-		chat_name: String;
-		criado_em: string;
+	const navigate = useNavigate();
+
+	interface Msg {
+		id: number;
+		chat_id: string;
+		user_id: number;
+		conteudo: string;
+		enviado_em: string; // ISO timestamp
+	}
+
+	interface Chat {
 		id: string;
-		tipo: string;
-		msgs: number[];
-	};
+		tipo: "grupo" | "individual"; // se souberes os tipos possíveis
+		criado_em: string; // ISO timestamp
+		chat_name: string;
+		profile_img: number;
+		msgs: Msg[]; // array de mensagens
+	}
 
-	const [chats, setChats] = useState<chatsType[] | null>(null);
+	const [chats, setChats] = useState<Chat[] | null>(null);
 
 	const { user } = useUser();
 
-	const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
-
-	interface ChatOutletContext {
-		isChatOpen: boolean;
-		setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+	function clickHandler(chatId: string) {
+		navigate(`/direct/${chatId}`);
 	}
 
 	useEffect(() => {
@@ -33,20 +41,28 @@ function Direct() {
 			fetch(`${host}/chats`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ user }),
+				body: JSON.stringify(user),
 			})
 				.then((res) => res.json())
-				.then((data) => setChats(Array.from(data)));
+				.then((data) => {
+					setChats(Array.from(data));
+				});
 		}, 500);
 	}, [user]);
 
 	return (
 		<>
-			<div className="flex gap-4 h-screen">
-				<div className="p-4 h-full md:w-125 text-sm">
+			<div className="flex text-gray-100 h-screen">
+				
+				<div className="p-4 h-full bg-castanho md:w-125 text-sm">
 					<div className="flex justify-between items-center my-5">
-						<div className="avatar flex justify-center items-center gap-2">
-							<div className="avatar-profile h-10 aspect-square rounded-[200px] bg-indigo-500"></div>
+						<div className="avatar flex justify-center  items-center gap-2">
+							<div className="avatar-profile overflow-hidden h-15 aspect-square rounded-[200px] bg-indigo-500">
+								<img
+									className="w-full"
+									src={`/Avatars/avatar (${user?.profile_img}).png`}
+								/>
+							</div>
 							<p className="user-name">{user?.user_name}</p>
 						</div>
 						<div className="new-msg">
@@ -67,7 +83,7 @@ function Direct() {
 					</div>
 					<div>
 						<input
-							className="w-full p-5 py-2 text-sm border rounded-[500px] focus:border-indigo-600 outline-0"
+							className="chat-search w-full p-5 py-2 text-sm rounded-[500px] outline-0"
 							type="text"
 							name="chat"
 							id="chat"
@@ -79,44 +95,60 @@ function Direct() {
 						<a href="">Pedidos</a>
 					</div>
 					<div>
-						<div className="flex gap-2 flex-col">
+						<div className="flex flex-col">
 							{chats?.map((element) => {
+								const timeStamp = element.msgs?.[0]?.enviado_em;
+
+								const hora = timeStamp
+									? new Date(timeStamp).toLocaleTimeString(
+											"pt-PT",
+											{
+												hour: "2-digit",
+												minute: "2-digit",
+											}
+									  )
+									: "";
+
 								return (
-									<>
-										<div>
-											<div className="flex items-center justify-start gap-2 my-2">
-												<div
-													className={`${"profileImg"}  h-15 aspect-square rounded-[200px] `}></div>
-												<div>
-													<p className="text-sm font-medium">
-														{"userName"}
-													</p>
-													<p>{"lastMessage"}</p>
-												</div>
-												<div className="items-center ml-auto">
-													<div>
-														<p className="text-xs text-gray-500">
-															{"formattedTime"}
-														</p>
-													</div>
-													<div className="badge"></div>
-												</div>
-											</div>
+									<div
+										key={element.id}
+										onClick={() => clickHandler(element.id)}
+										className={`chat-selector flex p-2 rounded-[10px] items-center justify-start gap-2 my-1 ${
+											openedChat == element.id
+												? "cinza-2"
+												: "hover:bg-cinza-2 cursor-pointer"
+										}`}>
+										<div className="profileImg h-11 aspect-square rounded-[200px]">
+											<img
+												className="w-full aspect-square rounded-[200px]"
+												src={`/Avatars/avatar (${element.profile_img}).png`}
+											/>
 										</div>
-									</>
+
+										<div>
+											<p className="text-sm font-medium">
+												{element.chat_name}
+											</p>
+											<p className="truncate-2">
+												{element.msgs?.[0]?.conteudo}
+											</p>
+										</div>
+
+										<div className="items-center ml-auto">
+											<p className="text-xs text-gray-500">
+												{hora}
+											</p>
+											<div className="badge"></div>
+										</div>
+									</div>
 								);
 							})}
 						</div>
 					</div>
 				</div>
 
-				<div
-					className={`p-4 w-full text-sm ${
-						isChatOpen ? "" : "hidden"
-					}`}>
-					<ChatContext.Provider value={{ isChatOpen, setIsChatOpen }}>
-						<Outlet />
-					</ChatContext.Provider>
+				<div className="w-full chat-wrapper">
+					<Outlet context={{chats, openedChat, setOpenedChats}} />
 				</div>
 			</div>
 		</>

@@ -1,132 +1,57 @@
 import { useParams } from "react-router-dom";
-import { useContext } from "react";
-import { appContext } from "./appContext";
-import { ChatContext } from "./chatContext";
+import { useUser } from "./useUser";
+import { useOutletContext } from "react-router-dom";
+import { useChat } from "./useChat";
+import { useEffect, useState } from "react";
+
+interface Msg {
+	id: number;
+	chat_id: string;
+	user_id: number;
+	conteudo: string;
+	enviado_em: string; // ISO timestamp
+}
+
+interface Chat {
+	id: string;
+	tipo: "grupo" | "individual"; // se souberes os tipos possíveis
+	criado_em: string; // ISO timestamp
+	chat_name: string;
+	profile_img: number;
+	msgs: Msg[]; // array de mensagens
+	lastUser?: number | null;
+	participants: object[];
+}
 
 export default function Chat() {
-	const { chatid } = useParams<{ chatid: string }>();
-	const name = useContext(appContext);
+	const { chats, openedChat, setOpenedChats } = useOutletContext<{
+		chats: Chat[];
+		openedChat: string | null;
+		setOpenedChats: React.Dispatch<React.SetStateAction<string | null>>;
+	}>();
 
-	const chatContext = useContext(ChatContext);
+	const { chatid } = useParams();
 
-	if (!chatContext) {
-		throw new Error("ChatContext usado fora do Provider");
-	}
+	const { isChatOpen, setIsChatOpen } = useChat();
+	const { user } = useUser();
 
-	const { isChatOpen, setIsChatOpen } = chatContext;
+	const [currentChat, setCurrentChat] = useState<Chat | undefined>(undefined);
 
-	type ChatType = "private" | "group";
-
-	interface Message {
-		author: string;
-		content: string;
-		timestamp: string; // ISO 8601
-	}
-
-	interface Chat {
-		chatId: string;
-		type: ChatType;
-		users: string[];
-		msgs: Message[];
-	}
-
-	const chats: Chat[] = [
-		{
-			chatId: "kh1223c2xg",
-			type: "private",
-			users: ["User123", "User456"],
-			msgs: [
-				{
-					author: "User123",
-					content: "Hello!",
-					timestamp: "2024-06-01T10:00:00Z",
-				},
-				{
-					author: "User456",
-					content: "Hi there!",
-					timestamp: "2024-06-01T10:05:00Z",
-				},
-			],
-		},
-		{
-			chatId: "pr8891aa9",
-			type: "private",
-			users: ["User789", "User123"],
-			msgs: [
-				{
-					author: "User789",
-					content: "Are you coming to the meeting?",
-					timestamp: "2024-06-02T14:20:00Z",
-				},
-				{
-					author: "User123",
-					content: "Yes, I'll be there in 10 minutes.",
-					timestamp: "2024-06-02T14:22:00Z",
-				},
-			],
-		},
-		{
-			chatId: "gr5510zzq",
-			type: "group",
-			users: ["User123", "User456", "User789"],
-			msgs: [
-				{
-					author: "User456",
-					content: "Did anyone finish the assignment?",
-					timestamp: "2024-06-03T08:10:00Z",
-				},
-				{
-					author: "User789",
-					content: "Almost done, just reviewing.",
-					timestamp: "2024-06-03T08:12:00Z",
-				},
-				{
-					author: "User123",
-					content: "Same here.",
-					timestamp: "2024-06-03T08:15:00Z",
-				},
-			],
-		},
-	];
-
-	interface User {
-		userId: string;
-		profileImg: string;
-		userName: string;
-		email: string;
-	}
-
-	const users: User[] = [
-		{
-			userId: "User123",
-			profileImg: "bg-blue-500",
-			userName: "Alex",
-			email: "alex@alex.com",
-		},
-		{
-			userId: "User456",
-			profileImg: "bg-red-500",
-			userName: "Joseph",
-			email: "joseph@joseph.com",
-		},
-		{
-			userId: "User789",
-			profileImg: "bg-green-500",
-			userName: "Maria",
-			email: "maria@maria.com",
-		},
-		{
-			userId: "User999",
-			profileImg: "bg-purple-500",
-			userName: "Daniel",
-			email: "daniel@daniel.com",
-		},
-	];
+	useEffect(() => {
+		if (!chats || !chatid) return;
+		const foundChat = chats.find((chat) => chat.id === chatid);
+		setCurrentChat(foundChat);
+		setIsChatOpen(true);
+		setOpenedChats(chatid);
+	}, [chatid, chats, openedChat, setOpenedChats]);
 
 	return (
 		<>
-			<div className={`${isChatOpen ? "bg-black" : "hidden"}`}>
-				<div className="h-screen flex flex-col w-full text-sm">
+			<div
+				className={`wrapper overflow-hidden max-h-full w-full p-6 pr-0 ${
+					isChatOpen ? "" : "hidden"
+				}`}>
+				<div className="h-screen w-full flex flex-col  text-sm">
 					<div className="flex gap-1 items-center ">
 						<div className="back-btn">
 							<svg
@@ -143,43 +68,76 @@ export default function Chat() {
 								/>
 							</svg>
 						</div>
-						<div className="avatar h-10 aspect-square bg-indigo-400 rounded-[200px] inline-block ml-2"></div>
+						<div className="avatar h-12 aspect-square rounded-[200px] inline-block ml-2">
+							<img
+								className="w-full rounded-[200px]"
+								src={`/Avatars/avatar (${currentChat?.profile_img}).png`}
+							/>
+						</div>
 						<div className="pl-2">
 							<p className="user-name">User1234</p>
 							<p className="text-sm">Online</p>
 						</div>
 					</div>
-					<div className="relative overflow-auto h-full flex flex-col">
-						{chats
-							.find((chat) => chat.chatId === chatid)
-							?.msgs.map((msg, index) => {
-								const isMe = msg.author === name;
 
-								return (
+					<div className="relative p-5 pb-0 overflow-auto h-full flex flex-col">
+						{currentChat?.msgs.map((msg, index) => {
+							const msgAuthor = currentChat.participants.find(
+								(p) => p.id === msg.user_id
+							);
+
+							const isMe = msg.user_id === user?.id;
+
+							const isFirstMsg =
+								index === 0 ||
+								currentChat.msgs[index - 1].user_id !==
+									msg.user_id;
+
+							return (
+								<div
+									key={index}
+									className={`flex gap-3 ${
+										isMe ? "justify-end" : "justify-start"
+									} items-start`}>
+									{/* avatar só aparece se for a primeira da sequência */}
+									{!isMe && isFirstMsg && (
+										<img
+											className="aspect-square h-8 rounded-full mt-2"
+											src={`/Avatars/avatar (${msgAuthor?.profile_img}).png`}
+											alt=""
+										/>
+									)}
+
+									{/* espaço fantasma pra alinhar quando não tem avatar */}
+									{!isMe && !isFirstMsg && (
+										<div className="w-8" />
+									)}
+
 									<div
-										key={index}
 										className={`flex ${
 											isMe
 												? "justify-end"
 												: "justify-start"
-										} my-2`}>
+										} my-1`}>
 										<p
 											className={`max-w-xs p-2 rounded-lg ${
 												isMe
-													? "bg-blue-500 text-white text-right"
-													: "bg-gray-200 text-left"
+													? "verde-1 text-white text-right"
+													: "cinza-1 text-left"
 											}`}>
-											{msg.content}
+											{msg.conteudo}
 										</p>
 									</div>
-								);
-							})}
+								</div>
+							);
+						})}
 					</div>
-					<div className="relative">
+
+					<div className="relative -top-9.5">
 						<form action="">
 							<input
 								type="text"
-								className="p-2 px-4 w-full rounded-[100px] outline-0 border"
+								className="p-2 px-4 w-[96%] rounded-[100px] outline-0 border"
 								name="new_msg"
 								id="new-msg"
 								placeholder="Mensagem..."

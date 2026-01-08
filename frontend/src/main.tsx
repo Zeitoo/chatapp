@@ -7,13 +7,14 @@ import SignIn from "./SignIn";
 import Direct from "./Direct.tsx";
 import Chat from "./Chat.tsx";
 import { AppProvider } from "./AppContextProvider.tsx";
-
+import { ChatContext } from "./chatContext.tsx";
 import {
 	createBrowserRouter,
 	createRoutesFromElements,
 	Route,
 	RouterProvider,
 } from "react-router-dom";
+import { ChatProvider } from "./chatContextProvider.tsx";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -47,7 +48,9 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<AppProvider>
-			<RouterProvider router={router} />
+			<ChatProvider>
+				<RouterProvider router={router} />
+			</ChatProvider>
 		</AppProvider>
 	</StrictMode>
 );

@@ -73,6 +73,14 @@ const getAccessToken = async (userId) => {
 	return rows;
 };
 
+const getUsersByName = async (userName) => {
+	const [rows] = await pool.query(
+		`SELECT * FROM users WHERE user_name = "${userName}";`
+	);
+
+	return rows[0];
+};
+
 const putAccessToken = async (token, userId) => {
 	const [rows] = await pool.query(
 		`INSERT INTO tokens (token, user_id) VALUES ("${token}", ${userId});`
@@ -89,5 +97,6 @@ module.exports = {
 	getUsersByEmail,
 	getAccessToken,
 	putAccessToken,
-	getUsersByToken
+	getUsersByToken,
+	getUsersByName
 };
