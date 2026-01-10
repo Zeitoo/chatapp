@@ -6,10 +6,13 @@ import { useUser } from "./useUser";
 
 function SignIn() {
 	const navigate = useNavigate();
-	const [modalMessage, setModalMessage] = useState<string>("");
-
-	const { setUser } = useUser();
+	const [hasError, setHasError] = useState<boolean>(false);
+	const [emailAddress, setEmailAddress] = useState<string>("");
+	const [password, setPassword] = useState<string>("");
+	const emailError = useRef<HTMLParagraphElement>(null);
+	const passwordError = useRef<HTMLParagraphElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
+	const { setUser } = useUser();
 
 	const host = import.meta.env.VITE_API_URL;
 
@@ -31,18 +34,56 @@ function SignIn() {
 
 			return;
 		}
-
-		if (response.status === 401) {
-			setModalMessage("Credenciais inválidas");
-		}
 	};
 
-	useEffect(() => {
-		document.title = "Inicio de Sessão";
+	const validarStep1 = () => {
+		let temErro = false;
 
-		formRef.current?.addEventListener("submit", (e) => {
-			e.preventDefault();
+		if (!emailAddress.trim()) {
+			const input = emailError.current
+				?.previousSibling as HTMLElement | null;
+			input?.classList.add("error");
 
+			emailError.current!.innerText = "Obrigatório";
+			temErro = true;
+		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
+			const input = emailError.current
+				?.previousSibling as HTMLElement | null;
+			input?.classList.add("error");
+			emailError.current!.innerText = "Email inválido";
+			temErro = true;
+		} else {
+			const input = emailError.current
+				?.previousSibling as HTMLElement | null;
+			input?.classList.remove("error");
+
+			emailError.current!.innerText = "";
+		}
+
+		if (password.length < 6) {
+			const input = passwordError.current
+				?.previousSibling as HTMLElement | null;
+			input?.classList.add("error");
+
+			passwordError.current!.innerText = "Deve ter 6 no minimo";
+			temErro = true;
+		} else {
+			const input = passwordError.current
+				?.previousSibling as HTMLElement | null;
+			input?.classList.remove("error");
+
+			passwordError.current!.innerText = "";
+		}
+		if (!hasError) {
+			setHasError(temErro);
+		}
+		return temErro;
+	};
+
+	const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		if (!validarStep1()) {
 			const data: Record<string, FormDataEntryValue> = {};
 			const formData = new FormData(formRef.current!);
 
@@ -51,16 +92,25 @@ function SignIn() {
 			});
 
 			mandarDados(JSON.stringify(data));
-		});
-	}, [formRef, mandarDados]);
+		}
+	};
+
+	useEffect(() => {
+		document.title = "Inicio de Sessão";
+
+		if (hasError) {
+			validarStep1();
+		}
+	}, [emailAddress, password, hasError]);
+
 	return (
 		<>
-			<div className="background relative w-lvw h-lvh flex items-center justify-center">
-				<div className="p-5 h-125 w-125 rounded-l-lg bg-white z-10">
+			<div className="background sign-in relative w-dvw h-dvh flex items-center justify-center">
+				<div className="p-5 h-125 w-80 bg-wrapper-login md:w-125 rounded-l-lg bg-white z-10">
 					<div className="bg-img rounded-2xl"></div>
 				</div>
 				<div className="form-container h-125 w-90 flex z-10 flex-col bg-white rounded-r-lg">
-					<div className="mt-15">
+					<div className="mt-10">
 						<div className="flex justify-center">
 							<img
 								className=""
@@ -75,37 +125,51 @@ function SignIn() {
 							Por favor, insira suas credenciais
 						</p>
 					</div>
-					<form ref={formRef}>
-						<div className="px-5 py-3">
+					<form
+						ref={formRef}
+						onSubmit={(e) => submitHandler(e)}>
+						<div className="px-5 py-3 pb-1">
 							<label
 								className="ml-1 text-sm font-medium"
 								htmlFor="email">
 								Email
 							</label>
 							<input
-								value="user16@mail.com"
+								value={emailAddress}
+								onChange={(e) => {
+									setEmailAddress(e.target.value);
+								}}
 								placeholder="Endereco de e-mail"
 								className="text py-10 px-3 outline-none border w-full border-gray-400 rounded-[7px]"
 								type="text"
 								id="email"
 								name="email"
 							/>
+							<p
+								ref={emailError}
+								className="text-red-600 error-msg text-sm px-1 pt-1"></p>
 						</div>
 
-						<div className="px-5 pb-4">
+						<div className="px-5 pb-0">
 							<label
 								className="ml-1 text-sm font-medium"
 								htmlFor="password">
 								Password
 							</label>
 							<input
-								value={"hash16"}
+								value={password}
+								onChange={(e) => {
+									setPassword(e.target.value);
+								}}
 								className="text py-2 px-5 outline-none border w-full border-gray-900 rounded-full"
 								placeholder="Palavra-passe"
 								type="password"
 								id="password"
 								name="password"
 							/>
+							<p
+								ref={passwordError}
+								className="text-red-600 error-msg text-sm px-1 pt-1"></p>
 
 							<button>
 								<span className="show-password"></span>
@@ -132,7 +196,7 @@ function SignIn() {
 								Recuperar palavra-passe
 							</a>
 						</div>
-						<div className="p-5">
+						<div className="p-5 py-2">
 							<button
 								className="btn btn-blue w-full"
 								type="submit">

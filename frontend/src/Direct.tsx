@@ -52,9 +52,8 @@ function Direct() {
 
 	return (
 		<>
-			<div className="flex text-gray-100 h-screen">
-				
-				<div className="p-4 h-full bg-castanho md:w-125 text-sm">
+			<div className="flex text-gray-100 h-dvh">
+				<div className={`${openedChat ? "direct-sidebar" : ""} p-4 h-full bg-castanho md:w-125 text-sm`}>
 					<div className="flex justify-between items-center my-5">
 						<div className="avatar flex justify-center  items-center gap-2">
 							<div className="avatar-profile overflow-hidden h-15 aspect-square rounded-[200px] bg-indigo-500">
@@ -63,27 +62,39 @@ function Direct() {
 									src={`/Avatars/avatar (${user?.profile_img}).png`}
 								/>
 							</div>
-							<p className="user-name">{user?.user_name}</p>
+							{openedChat ? (
+								<p className="user-name"></p>
+							) : (
+								<p className="user-name">{user?.user_name}</p>
+							)}
 						</div>
-						<div className="new-msg">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								strokeWidth={1.5}
-								stroke="currentColor"
-								className="size-6">
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
-								/>
-							</svg>
-						</div>
+						{openedChat ? (
+							""
+						) : (
+							<div className="new-msg">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									strokeWidth={1.5}
+									stroke="currentColor"
+									className="size-6">
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+									/>
+								</svg>
+							</div>
+						)}
 					</div>
 					<div>
 						<input
-							className="chat-search w-full p-5 py-2 text-sm rounded-[500px] outline-0"
+							className={`chat-search text-sm rounded-[500px] outline-0  ${
+								openedChat
+									? "w-0 opacity-0 md:w-full md:opacity-100 p-5 py-2"
+									: " "
+							} `}
 							type="text"
 							name="chat"
 							id="chat"
@@ -91,11 +102,25 @@ function Direct() {
 						/>
 					</div>
 					<div className="my-5 flex justify-between items-center">
-						<h1 className="font-medium">Mensagens</h1>
-						<a href="">Pedidos</a>
+						<>
+							<h1
+								className={`${
+									openedChat ? "hidden md:block" : ""
+								} font-medium`}>
+								Mensagens
+							</h1>
+							<a
+								className={`${
+									openedChat ? "hidden md:block" : ""
+								}`}
+								href="">
+								Pedidos
+							</a>
+						</>
 					</div>
 					<div>
 						<div className="flex flex-col">
+							<hr className="md:opacity-0 opacity-100"/>
 							{chats?.map((element) => {
 								const timeStamp = element.msgs?.[0]?.enviado_em;
 
@@ -120,12 +145,17 @@ function Direct() {
 										}`}>
 										<div className="profileImg h-11 aspect-square rounded-[200px]">
 											<img
-												className="w-full aspect-square rounded-[200px]"
+												className="w-full ml-1 aspect-square rounded-[200px]"
 												src={`/Avatars/avatar (${element.profile_img}).png`}
 											/>
 										</div>
 
-										<div>
+										<div
+											className={`${
+												openedChat
+													? "hidden md:block"
+													: ""
+											}`}>
 											<p className="text-sm font-medium">
 												{element.chat_name}
 											</p>
@@ -135,9 +165,14 @@ function Direct() {
 										</div>
 
 										<div className="items-center ml-auto">
-											<p className="text-xs text-gray-500">
-												{hora}
-											</p>
+											{openedChat ? (
+												""
+											) : (
+												<p className="text-xs text-gray-500">
+													{hora}
+												</p>
+											)}
+
 											<div className="badge"></div>
 										</div>
 									</div>
@@ -148,7 +183,7 @@ function Direct() {
 				</div>
 
 				<div className="w-full chat-wrapper">
-					<Outlet context={{chats, openedChat, setOpenedChats}} />
+					<Outlet context={{ chats, openedChat, setOpenedChats }} />
 				</div>
 			</div>
 		</>

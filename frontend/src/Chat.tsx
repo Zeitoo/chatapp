@@ -3,6 +3,7 @@ import { useUser } from "./useUser";
 import { useOutletContext } from "react-router-dom";
 import { useChat } from "./useChat";
 import { useEffect, useState } from "react";
+import { EditableBox } from "./msgInput";
 
 interface Msg {
 	id: number;
@@ -37,6 +38,10 @@ export default function Chat() {
 
 	const [currentChat, setCurrentChat] = useState<Chat | undefined>(undefined);
 
+	const sendMessage = (value: string) => {
+		console.log("Valor vindo do filho:", value);
+	};
+
 	useEffect(() => {
 		if (!chats || !chatid) return;
 		const foundChat = chats.find((chat) => chat.id === chatid);
@@ -48,11 +53,12 @@ export default function Chat() {
 	return (
 		<>
 			<div
-				className={`wrapper overflow-hidden max-h-full w-full p-6 pr-0 ${
+				className={`wrapper overflow-hidden max-h-dvh w-full ${
 					isChatOpen ? "" : "hidden"
 				}`}>
-				<div className="h-screen w-full flex flex-col  text-sm">
-					<div className="flex gap-1 items-center ">
+				<div className="h-dvh w-full flex flex-col text-sm">
+					{/* HEADER */}
+					<div className="flex gap-1 items-center h-16 shrink-0">
 						<div className="back-btn">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -68,26 +74,29 @@ export default function Chat() {
 								/>
 							</svg>
 						</div>
-						<div className="avatar h-12 aspect-square rounded-[200px] inline-block ml-2">
+
+						<div className="avatar h-10 aspect-square rounded-full ml-2">
 							<img
-								className="w-full rounded-[200px]"
+								className="w-full rounded-full"
 								src={`/Avatars/avatar (${currentChat?.profile_img}).png`}
 							/>
 						</div>
+
 						<div className="pl-2">
-							<p className="user-name">User1234</p>
-							<p className="text-sm">Online</p>
+							<p className="user-name">
+								{currentChat?.chat_name}
+							</p>
+							{/* CHAT / SCROLL    <p className="text-sm">Online</p> */}
 						</div>
 					</div>
 
-					<div className="relative p-5 pb-0 overflow-auto h-full flex flex-col">
+					<div className="messages-wrapper flex-1 overflow-y-auto p-5 pb-0 flex flex-col">
 						{currentChat?.msgs.map((msg, index) => {
 							const msgAuthor = currentChat.participants.find(
 								(p) => p.id === msg.user_id
 							);
 
 							const isMe = msg.user_id === user?.id;
-
 							const isFirstMsg =
 								index === 0 ||
 								currentChat.msgs[index - 1].user_id !==
@@ -99,7 +108,6 @@ export default function Chat() {
 									className={`flex gap-3 ${
 										isMe ? "justify-end" : "justify-start"
 									} items-start`}>
-									{/* avatar só aparece se for a primeira da sequência */}
 									{!isMe && isFirstMsg && (
 										<img
 											className="aspect-square h-8 rounded-full mt-2"
@@ -108,17 +116,11 @@ export default function Chat() {
 										/>
 									)}
 
-									{/* espaço fantasma pra alinhar quando não tem avatar */}
 									{!isMe && !isFirstMsg && (
 										<div className="w-8" />
 									)}
 
-									<div
-										className={`flex ${
-											isMe
-												? "justify-end"
-												: "justify-start"
-										} my-1`}>
+									<div className="my-1">
 										<p
 											className={`max-w-xs p-2 rounded-lg ${
 												isMe
@@ -133,33 +135,10 @@ export default function Chat() {
 						})}
 					</div>
 
-					<div className="relative -top-9.5">
-						<form action="">
-							<input
-								type="text"
-								className="p-2 px-4 w-[96%] rounded-[100px] outline-0 border"
-								name="new_msg"
-								id="new-msg"
-								placeholder="Mensagem..."
-							/>
-							<div className="absolute -right-1 top-1/2 -translate-1/2">
-								<button>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth={1.5}
-										stroke="currentColor"
-										className="size-5">
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="m8.25 4.5 7.5 7.5-7.5 7.5"
-										/>
-									</svg>
-								</button>
-							</div>
-						</form>
+					{/* INPUT */}
+					<div className="shrink-0 px-4 pb-1">
+							<EditableBox onAction={sendMessage}/>
+					
 					</div>
 				</div>
 			</div>

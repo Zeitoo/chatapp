@@ -19,6 +19,7 @@ const {
 	getAccessToken,
 	getUsersByToken,
 	getUsersByName,
+	putUser,
 } = require("./models/models.js");
 
 app.use(express.json());
@@ -143,8 +144,37 @@ async function chats(userId) {
 	return chats;
 }
 
+
+
+app.get("/", (req, res) => {
+	res.end("hi");
+	//console.log(req.headers, req.cookies.access_token);
+});
+
+app.get("/status", verifyAuth, async (req, res) => {
+	const token = req.cookies?.access_token;
+
+	const user = await getUsersByToken(token);
+	return res.status(200).json(user);
+});
+
+app.post("/chats", async (req, res) => {
+	const user = req.body;
+	if (user.id) {
+		const chatsWithMsgs = await chats(user.id);
+		res.status(200).json(chatsWithMsgs);
+	} else {
+		res.json({
+			message: "failed",
+		});
+	}
+});
+
+
 app.post("/login", async (req, res) => {
 	const ip = req.socket.remoteAddress;
+	console.log(req.body)
+	console.log("logging")
 	const { email, password } = req.body;
 
 	let users = await getUsersByEmail(email);
@@ -176,31 +206,18 @@ app.post("/login", async (req, res) => {
 	});
 });
 
-app.get("/", (req, res) => {
-	res.end("hi");
-	//console.log(req.headers, req.cookies.access_token);
-});
 
-app.get("/status", verifyAuth, async (req, res) => {
-	const token = req.cookies?.access_token;
-
-	const user = await getUsersByToken(token);
-	return res.status(200).json(user);
-});
-
-app.post("/chats", async (req, res) => {
+app.post("/signup", async (req, res) => {
 	const user = req.body;
-	if (user.id) {
-		const chatsWithMsgs = await chats(user.id);
-		res.status(200).json(chatsWithMsgs);
-	} else {
-		res.json({
-			message: "failed",
-		});
-	}
+	console.log(user);
+	const estado = await putUser(user);
+	if (estado) {
+		res.status(201).json({ message: "signup successful" });
+	} else res.status(409).json({ message: "user already exists" });
 });
 
 app.post("/user", async (req, res) => {
+
 	const userName = req?.body.user_name;
 
 	if (userName) {

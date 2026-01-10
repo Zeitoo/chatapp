@@ -1,10 +1,14 @@
 //models.js
 const { pool } = require("../config/config_db.js");
+const crypto = require("crypto");
 
 function fecharPool() {
 	setTimeout(() => {
 		//pool.end();
 	}, 20000);
+}
+function hashPassword(password) {
+	return crypto.createHash("sha256").update(password).digest("hex");
 }
 
 const getChats = async (userId) => {
@@ -89,7 +93,29 @@ const putAccessToken = async (token, userId) => {
 	return rows;
 };
 
+const putUser = async (user) => {
+	console.log(user);
+	try {
+		const rows = await pool.query(
+			`INSERT INTO users (user_name, email_address, password_hash,profile_img) VALUES ("${
+				user.userName
+			}","${user.emailAddress}","${hashPassword(user.password)}",${
+				user.profileImg
+			});`
+		);
+
+		return true;
+	} catch (e) {
+		if (e.message.includes("Duplicate entry")) {
+			return null;
+		}
+	}
+
+	return true;
+};
+
 module.exports = {
+	putUser,
 	getChats,
 	getChatParticipants,
 	getChatMessages,
@@ -98,5 +124,5 @@ module.exports = {
 	getAccessToken,
 	putAccessToken,
 	getUsersByToken,
-	getUsersByName
+	getUsersByName,
 };

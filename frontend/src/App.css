@@ -16,6 +16,9 @@
 	--cinza-1: #242626;
 	--cinza-2: #ffffff0a;
 	--verde-1: #144d37;
+	--sb-track-color: #232e33;
+	--sb-thumb-color: #ffffff;
+	--sb-size: 2px;
 }
 
 .background {
@@ -82,6 +85,9 @@ input.text {
 }
 
 @media (max-width: 900px) {
+}
+
+@media (max-width: 600px) {
 	.bg-wrapper-login {
 		display: none !important;
 	}
@@ -89,8 +95,11 @@ input.text {
 	.form-container {
 		border-radius: 8px !important;
 	}
-}
 
+	.direct-sidebar {
+		display: none;
+	}
+}
 .truncate {
 	white-space: nowrap;
 	overflow: hidden;
@@ -162,7 +171,8 @@ input.text {
 	display: none;
 }
 
-.sign-up .error-msg {
+.sign-up .error-msg,
+.sign-in .error-msg {
 	opacity: 0.7;
 	font-size: 12px;
 	min-height: 1.25rem; /* altura fixa para evitar "pulo" do layout */
@@ -175,4 +185,70 @@ input.text {
 
 input.error {
 	border-color: rgba(255, 0, 0, 0.377);
+}
+
+.messages-wrapper::-webkit-scrollbar {
+	width: var(--sb-size);
+}
+
+.messages-wrapper::-webkit-scrollbar-track {
+	background: var(--sb-track-color);
+	border-radius: 5px;
+}
+
+.messages-wrapper::-webkit-scrollbar-thumb {
+	background: var(--sb-thumb-color);
+	border-radius: 5px;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+	.messages-wrapper {
+		scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+	}
+}
+
+/* Adicione no seu arquivo CSS global se precisar */
+.w-inherit {
+	width: inherit;
+}
+
+.break-words {
+	word-break: break-word;
+	overflow-wrap: break-word;
+}
+/* No seu arquivo CSS global */
+[contenteditable]:empty:before {
+	content: attr(data-placeholder);
+	color: #9ca3af;
+	font-style: italic;
+}
+
+.caret-blue {
+	caret-color: var(--color-blue-500);
+}
+
+.send-btn {
+	scale: 0.9;
+}
+
+/* Custom scrollbar Webkit */
+div[contenteditable]::-webkit-scrollbar {
+	width: var(--sb-size);
+}
+
+div[contenteditable]::-webkit-scrollbar-track {
+	background: var(--sb-track-color);
+	border-radius: 5px;
+}
+
+div[contenteditable]::-webkit-scrollbar-thumb {
+	background: var(--sb-thumb-color);
+	border-radius: 5px;
+}
+
+/* Fallback Firefox */
+@supports not selector(::-webkit-scrollbar) {
+	div[contenteditable] {
+		scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+	}
 }
