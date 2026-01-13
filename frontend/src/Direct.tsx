@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useUser } from "./useUser";
 
 function Direct() {
@@ -35,6 +35,9 @@ function Direct() {
 	}
 
 	useEffect(() => {
+		if (!openedChat) {
+			setOpenedChats(null);
+		}
 		setTimeout(() => {
 			if (!user) return;
 
@@ -48,25 +51,29 @@ function Direct() {
 					setChats(Array.from(data));
 				});
 		}, 500);
-	}, [user]);
+	}, [user, openedChat]);
 
 	return (
 		<>
 			<div className="flex text-gray-100 h-dvh">
-				<div className={`${openedChat ? "direct-sidebar" : ""} p-4 h-full bg-castanho md:w-125 text-sm`}>
+				<div
+					className={`fade ${
+						openedChat ? "direct-sidebar" : "w-full"
+					} p-4 h-full bg-castanho md:w-125 text-sm`}>
 					<div className="flex justify-between items-center my-5">
 						<div className="avatar flex justify-center  items-center gap-2">
 							<div className="avatar-profile overflow-hidden h-15 aspect-square rounded-[200px] bg-indigo-500">
 								<img
-									className="w-full"
+									className="w-full no-select"
 									src={`/Avatars/avatar (${user?.profile_img}).png`}
 								/>
 							</div>
-							{openedChat ? (
-								<p className="user-name"></p>
-							) : (
-								<p className="user-name">{user?.user_name}</p>
-							)}
+							<p
+								className={`user-name ml-1 no-select font-bold md:block ${
+									openedChat ? "hidden" : ""
+								}`}>
+								{user?.user_name}
+							</p>
 						</div>
 						{openedChat ? (
 							""
@@ -82,7 +89,7 @@ function Direct() {
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
-										d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+										d="M12 4.5v15m7.5-7.5h-15"
 									/>
 								</svg>
 							</div>
@@ -90,10 +97,10 @@ function Direct() {
 					</div>
 					<div>
 						<input
-							className={`chat-search text-sm rounded-[500px] outline-0  ${
+							className={`chat-search text-sm rounded-[500px] w-full outline-0  ${
 								openedChat
-									? "w-0 opacity-0 md:w-full md:opacity-100 p-5 py-2"
-									: " "
+									? "open-chat-search w-0 opacity-0 md:w-full md:opacity-100 md:px-5 py-2"
+									: "p-5 py-2"
 							} `}
 							type="text"
 							name="chat"
@@ -104,23 +111,27 @@ function Direct() {
 					<div className="my-5 flex justify-between items-center">
 						<>
 							<h1
-								className={`${
+								className={`no-select ${
 									openedChat ? "hidden md:block" : ""
 								} font-medium`}>
 								Mensagens
 							</h1>
-							<a
+							<Link
 								className={`${
 									openedChat ? "hidden md:block" : ""
 								}`}
-								href="">
+								to={"pedidos"}>
 								Pedidos
-							</a>
+							</Link>
 						</>
 					</div>
 					<div>
 						<div className="flex flex-col">
-							<hr className="md:opacity-0 opacity-100"/>
+							<hr
+								className={`opacity-0  ${
+									openedChat ? "md:opacity-0 opacity-100" : ""
+								}`}
+							/>
 							{chats?.map((element) => {
 								const timeStamp = element.msgs?.[0]?.enviado_em;
 
@@ -143,9 +154,9 @@ function Direct() {
 												? "cinza-2"
 												: "hover:bg-cinza-2 cursor-pointer"
 										}`}>
-										<div className="profileImg h-11 aspect-square rounded-[200px]">
+										<div className="profileImg h-11 aspect-square mr-2 rounded-[200px]">
 											<img
-												className="w-full ml-1 aspect-square rounded-[200px]"
+												className="no-select w-full ml-1 aspect-square rounded-[200px]"
 												src={`/Avatars/avatar (${element.profile_img}).png`}
 											/>
 										</div>
@@ -182,7 +193,10 @@ function Direct() {
 					</div>
 				</div>
 
-				<div className="w-full chat-wrapper">
+				<div
+					className={`chat-wrapper w-0 ${
+						openedChat ? "w-full" : "md:w-full"
+					}`}>
 					<Outlet context={{ chats, openedChat, setOpenedChats }} />
 				</div>
 			</div>

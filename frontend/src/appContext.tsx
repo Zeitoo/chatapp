@@ -1,11 +1,12 @@
 import { createContext } from "react";
 
 export type UserType = {
-	id: number;
-	user_name: string;
-	email_address: string;
-	profile_img: string; // URL ou base64
-	created_at: string;  // ISO string
+	id: number | undefined;
+	user_name: string | undefined;
+	email_address: string | undefined;
+	profile_img: string | undefined; // URL ou base64
+	created_at: string | undefined; // ISO string
+	pedidos: string[] | undefined;
 };
 
 export interface AppContextType {

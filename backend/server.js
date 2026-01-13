@@ -10,16 +10,19 @@ const lanAddress = process.env.LAN_HOST;
 
 const {
 	getChats,
-	getDatabases,
 	getChatParticipants,
 	getChatMessages,
-	getUsers,
+	getUser,
 	getUsersByEmail,
 	putAccessToken,
 	getAccessToken,
 	getUsersByToken,
 	getUsersByName,
 	putUser,
+	putMessage, getPedidos,
+	getUsers,
+	deletePedido,
+	putNewChat,
 } = require("./models/models.js");
 
 app.use(express.json());
@@ -46,6 +49,17 @@ const token = (ip) => {
 			.slice(0, 10) +
 		"ty" +
 		ip.replace(/[:.]/g, "").replace("ffff", "")
+	);
+};
+
+const generateId = () => {
+	return (
+		Array.from(
+			"qweruiopasdfghj1234ty7890klzxcvbnm12347890QWERUIOPASDFGHJKLZXCVBNM"
+		)
+			.sort(() => Math.random() - 0.5)
+			.join("")
+			.slice(0, 36)
 	);
 };
 
@@ -115,7 +129,7 @@ async function chats(userId) {
 
 				if (!otherUser) return;
 
-				const userData = await getUsers(otherUser.user_id);
+				const userData = await getUser(otherUser.user_id);
 				const user = userData[0];
 
 				if (!user) return;
@@ -129,7 +143,7 @@ async function chats(userId) {
 			// chat de grupo
 			const participantsData = await Promise.all(
 				participants.map(async (p) => {
-					const userData = await getUsers(p.user_id);
+					const userData = await getUser(p.user_id);
 					const user = userData[0];
 					if (!user) return null;
 					delete user.password_hash;
@@ -144,17 +158,23 @@ async function chats(userId) {
 	return chats;
 }
 
-
-
 app.get("/", (req, res) => {
 	res.end("hi");
 	//console.log(req.headers, req.cookies.access_token);
 });
 
-app.get("/status", verifyAuth, async (req, res) => {
+app.get("/status", async (req, res) => {
 	const token = req.cookies?.access_token;
 
 	const user = await getUsersByToken(token);
+	const response = await getPedidos(user[0].id)
+	const pedidos = []
+	for (let c of response) {
+		const pedido = c.fromto.split(",")
+		pedido.includes("16") ? pedidos.push(pedido) : ""
+	}
+
+	user[0].pedidos = pedidos
 	return res.status(200).json(user);
 });
 
@@ -216,12 +236,89 @@ app.post("/signup", async (req, res) => {
 	} else res.status(409).json({ message: "user already exists" });
 });
 
-app.post("/user", async (req, res) => {
 
-	const userName = req?.body.user_name;
-
-	if (userName) {
-		const user = await getUsersByName(userName);
-		return res.status(200).json(user);
+app.get('/user/:id', async (req, res) => {
+	const id = req.params.id;
+	if (id) {
+		const user = await getUser(id);
+		delete user[0].password_hash
+		return res.status(200).json(user[0]);
+	}
+	else {
+		return res.status(400).json({ message: "user required" })
 	}
 });
+
+
+app.post("/users", async (req, res) => {
+
+	const reqUsers = req.body.users;
+	if (reqUsers.length > 0) {
+		const users = await getUsers(reqUsers);
+		res.status(200).json(users)
+	}
+	else {
+		res.status(200).json({ message: "nenhum user encontrado..." })
+	}
+})
+
+app.put("/new_msg", async (req, res) => {
+	const data = req.body
+	console.log("Requeste data:", data)
+
+	const chatId = data.chatId
+	const conteudo = data.conteudo
+	const userId = data.userId
+
+	const newMsg = await putMessage({
+		chatId,
+		conteudo,
+		userId
+	})
+
+	console.log("Database response: ", newMsg)
+
+	res.status(200).send("done")
+
+})
+
+app.put("/new_chat", async (req, res) => {
+	const users = req.body.users;
+	const response = await putNewChat(generateId(), users)
+
+	if (response) {
+		const pedido = users.join(",")
+		const rows = await deletePedido(pedido);
+		if (rows) {
+
+			res.status(200).json({
+				message: "Chat criado com sucesso"
+			})
+		} else {
+			res.status(400).json({
+				message: "Houve um erro na criacao do chat..."
+			})
+		}
+	}
+	else {
+		res.status(400).json({
+			message: "Houve um erro na criacao do chat..."
+		})
+	}
+
+})
+
+app.delete("/pedido", async (req, res) => {
+	const pedido = req.body.pedido;
+	const response = await deletePedido(pedido);
+	if (response) {
+		res.status(200).json({
+			message: "Apagado com sucesso."
+		})
+	}
+	else {
+		res.status((404)).json({
+			message: "Pedido não encontrado."
+		})
+	}
+})

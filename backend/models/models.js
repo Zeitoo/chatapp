@@ -1,4 +1,5 @@
 //models.js
+const { get } = require("http");
 const { pool } = require("../config/config_db.js");
 const crypto = require("crypto");
 
@@ -41,7 +42,7 @@ const getChatMessages = async (chatId) => {
 	return rows;
 };
 
-const getUsers = async (userId) => {
+const getUser = async (userId) => {
 	const [rows] = await pool.query(
 		`SELECT * FROM users WHERE id = ${userId};`
 	);
@@ -85,6 +86,19 @@ const getUsersByName = async (userName) => {
 	return rows[0];
 };
 
+const getUsers = async (users) => {
+	const query = `SELECT * FROM users WHERE id IN (${users.join(",")});`
+	const [rows] = await pool.query(query)
+
+	return rows
+}
+
+const getPedidos = async (userId) => {
+	const [rows] = await pool.query(`SELECT * FROM pedidos WHERE fromto LIKE "%${userId}%";`)
+
+	return rows
+}
+
 const putAccessToken = async (token, userId) => {
 	const [rows] = await pool.query(
 		`INSERT INTO tokens (token, user_id) VALUES ("${token}", ${userId});`
@@ -97,10 +111,8 @@ const putUser = async (user) => {
 	console.log(user);
 	try {
 		const rows = await pool.query(
-			`INSERT INTO users (user_name, email_address, password_hash,profile_img) VALUES ("${
-				user.userName
-			}","${user.emailAddress}","${hashPassword(user.password)}",${
-				user.profileImg
+			`INSERT INTO users (user_name, email_address, password_hash,profile_img) VALUES ("${user.userName
+			}","${user.emailAddress}","${hashPassword(user.password)}",${user.profileImg
 			});`
 		);
 
@@ -114,15 +126,72 @@ const putUser = async (user) => {
 	return true;
 };
 
+const putMessage = async (messageData) => {
+	try {
+		const [rows] = await pool.query(
+			`INSERT INTO messages (chat_id, user_id, conteudo) VALUES ("${messageData.chatId}",${messageData.userId},"${messageData.conteudo}");`
+		);
+
+		return rows
+	}
+	catch (e) {
+		return null
+	}
+
+}
+
+const putPedido = async (remetente, destinatario) => {
+	const rows = await pool.query(`INSERT INTO pedidos VALUES ("${remetente},${destinatario}");`)
+
+	return rows
+}
+
+const deletePedido = async (pedido) => {
+	console.log(`DELETE FROM pedidos WHERE fromto = "${pedido}";`)
+	const [rows] = await pool.query(`DELETE FROM pedidos WHERE fromto = "${pedido}";`)
+
+	if (rows.affectedRows > 0) {
+		return true
+	}
+
+	else {
+		return false
+	}
+}
+
+const putNewChat = async (chatId, users) => {
+
+	const [createChat] = await pool.query(`INSERT INTO chats (id, tipo) VALUES ("${chatId}", "privado");`)
+	if (createChat.affectedRows > 0) {
+		for (let user of users) {
+			const [createChatUsers] = await pool.query(`INSERT INTO chat_users VALUES ("${chatId}", ${user});`)
+			if (createChatUsers.affectedRows < 1) {
+				return false
+			}
+		}
+		return true
+	}
+	else {
+		return false
+	}
+
+}
+
 module.exports = {
+	putPedido,
+	putNewChat,
+	deletePedido,
+	getPedidos,
+	getUsers,
 	putUser,
 	getChats,
 	getChatParticipants,
 	getChatMessages,
-	getUsers,
+	getUser,
 	getUsersByEmail,
 	getAccessToken,
 	putAccessToken,
 	getUsersByToken,
 	getUsersByName,
+	putMessage
 };

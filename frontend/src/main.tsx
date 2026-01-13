@@ -6,8 +6,9 @@ import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import Direct from "./Direct.tsx";
 import Chat from "./Chat.tsx";
+import Live from "./livestream.tsx";
+import { Requests } from "./Requests.tsx";
 import { AppProvider } from "./AppContextProvider.tsx";
-import { ChatContext } from "./chatContext.tsx";
 import {
 	createBrowserRouter,
 	createRoutesFromElements,
@@ -29,9 +30,19 @@ const router = createBrowserRouter(
 				path="signin"
 				element={<SignIn />}
 			/>
+
+			<Route
+				path="live"
+				element={<Live />}
+			/>
+
 			<Route
 				path="direct/"
 				element={<Direct />}>
+				<Route
+					path="pedidos"
+					element={<Requests />}
+				/>
 				<Route
 					path=":chatid"
 					element={<Chat />}

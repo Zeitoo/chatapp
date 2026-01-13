@@ -15,6 +15,7 @@ function App() {
 	useEffect(() => {
 		if (!route.pathname.includes("sign")) {
 			fetch(`${host}/status`, { credentials: "include" }).then((res) => {
+				
 				if (res.status !== 200) {
 					navigate("/signin");
 				} else {
