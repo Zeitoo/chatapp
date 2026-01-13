@@ -17,7 +17,7 @@ const {
 	putAccessToken,
 	getAccessToken,
 	getUsersByToken,
-	getUsersByName,
+	getUsersByNameS,
 	putUser,
 	putMessage, getPedidos,
 	getUsers,
@@ -77,10 +77,8 @@ async function verifyAuth(req, res, next) {
 		.replace("ffff", "");
 
 	const token = req.cookies?.access_token;
-	//console.log("Verifying token:", token, "from IP:", ip);
 
 	if (!token) {
-		console.log("login required");
 		return res.status(401).json({
 			message: "Login required...",
 		});
@@ -160,10 +158,10 @@ async function chats(userId) {
 
 app.get("/", (req, res) => {
 	res.end("hi");
-	//console.log(req.headers, req.cookies.access_token);
+	
 });
 
-app.get("/status", async (req, res) => {
+app.get("/status", verifyAuth, async (req, res) => {
 	const token = req.cookies?.access_token;
 
 	const user = await getUsersByToken(token);
@@ -171,7 +169,7 @@ app.get("/status", async (req, res) => {
 	const pedidos = []
 	for (let c of response) {
 		const pedido = c.fromto.split(",")
-		pedido.includes("16") ? pedidos.push(pedido) : ""
+		pedido.includes(String(user[0].id)) ? pedidos.push(pedido) : ""
 	}
 
 	user[0].pedidos = pedidos
@@ -193,8 +191,6 @@ app.post("/chats", async (req, res) => {
 
 app.post("/login", async (req, res) => {
 	const ip = req.socket.remoteAddress;
-	console.log(req.body)
-	console.log("logging")
 	const { email, password } = req.body;
 
 	let users = await getUsersByEmail(email);
@@ -237,10 +233,13 @@ app.post("/signup", async (req, res) => {
 });
 
 
-app.get('/user/:id', async (req, res) => {
-	const id = req.params.id;
-	if (id) {
-		const user = await getUser(id);
+app.get('/user/search/:user_name', async (req, res) => {
+	const user_name = req.params.user_name;
+	if (user_name) {
+		const user = await getUsersByNameS(user_name);
+		if (!user) {
+			return res.status(404).json({ message: "user not found" })
+		}
 		delete user[0].password_hash
 		return res.status(200).json(user[0]);
 	}
@@ -264,7 +263,6 @@ app.post("/users", async (req, res) => {
 
 app.put("/new_msg", async (req, res) => {
 	const data = req.body
-	console.log("Requeste data:", data)
 
 	const chatId = data.chatId
 	const conteudo = data.conteudo
@@ -275,8 +273,6 @@ app.put("/new_msg", async (req, res) => {
 		conteudo,
 		userId
 	})
-
-	console.log("Database response: ", newMsg)
 
 	res.status(200).send("done")
 

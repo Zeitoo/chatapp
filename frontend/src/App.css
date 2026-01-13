@@ -307,11 +307,19 @@ div[contenteditable]::-webkit-scrollbar-thumb {
 	cursor: pointer;
 }
 
-.pedidos .profile{
+.pedidos .profile,
+.new-chat .profile
+{
 	background-color: var(--cinza-3);
 	transition: all .3s ease ;
 }
 
-.pedidos .profile:hover{
+
+.pedidos .profile:hover,
+.new-chat .profile:hover{
 	background-color: var(--cinza-1);
+}
+
+.bg-green-1 {
+	background-color: rgba(103, 216, 103, 0.13);
 }

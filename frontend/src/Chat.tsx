@@ -130,8 +130,6 @@ export default function Chat() {
 									currentChat.msgs[index - 1].user_id !==
 										msg.user_id;
 
-								console.log();
-
 								return (
 									<div
 										key={index}

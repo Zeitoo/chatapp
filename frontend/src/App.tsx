@@ -7,15 +7,13 @@ function App() {
 	const navigate = useNavigate();
 	const route = useLocation();
 
-	const {setUser } = useUser();
+	const { setUser } = useUser();
 
 	const host = import.meta.env.VITE_API_URL;
-
 
 	useEffect(() => {
 		if (!route.pathname.includes("sign")) {
 			fetch(`${host}/status`, { credentials: "include" }).then((res) => {
-				
 				if (res.status !== 200) {
 					navigate("/signin");
 				} else {

@@ -47,6 +47,8 @@ export function Requests() {
 
 	const backButtonHandler = () => {
 		navigate("/direct");
+		setIsChatOpen(false);
+		setOpenedChats(null);
 	};
 
 	const deletFetch = async (pedido: string) => {
@@ -199,7 +201,7 @@ export function Requests() {
 
 	return (
 		<>
-			<div className="max-h-dvh pedidos overflow-y-auto ">
+			<div className="max-h-dvh fade pedidos overflow-y-auto ">
 				<div className="flex items-center">
 					<div
 						onClick={() => {

@@ -8,6 +8,7 @@ import Direct from "./Direct.tsx";
 import Chat from "./Chat.tsx";
 import Live from "./livestream.tsx";
 import { Requests } from "./Requests.tsx";
+import NewChat from "./NewChat.tsx";
 import { AppProvider } from "./AppContextProvider.tsx";
 import {
 	createBrowserRouter,
@@ -42,6 +43,10 @@ const router = createBrowserRouter(
 				<Route
 					path="pedidos"
 					element={<Requests />}
+				/>
+				<Route
+					path="new_chat"
+					element={<NewChat />}
 				/>
 				<Route
 					path=":chatid"

@@ -79,11 +79,21 @@ const getAccessToken = async (userId) => {
 };
 
 const getUsersByName = async (userName) => {
-	const [rows] = await pool.query(
+	const rows = await pool.query(
 		`SELECT * FROM users WHERE user_name = "${userName}";`
 	);
 
-	return rows[0];
+	if (rows[0].length === 0) return false
+	return rows;
+};
+
+const getUsersByNameS = async (userName) => {
+	const rows = await pool.query(
+		`SELECT * FROM users WHERE user_name LIKE "%${userName}%" LIMIT 20;`
+	);
+
+	if (rows[0].length === 0) return false
+	return rows;
 };
 
 const getUsers = async (users) => {
@@ -108,7 +118,6 @@ const putAccessToken = async (token, userId) => {
 };
 
 const putUser = async (user) => {
-	console.log(user);
 	try {
 		const rows = await pool.query(
 			`INSERT INTO users (user_name, email_address, password_hash,profile_img) VALUES ("${user.userName
@@ -147,7 +156,6 @@ const putPedido = async (remetente, destinatario) => {
 }
 
 const deletePedido = async (pedido) => {
-	console.log(`DELETE FROM pedidos WHERE fromto = "${pedido}";`)
 	const [rows] = await pool.query(`DELETE FROM pedidos WHERE fromto = "${pedido}";`)
 
 	if (rows.affectedRows > 0) {
@@ -193,5 +201,6 @@ module.exports = {
 	putAccessToken,
 	getUsersByToken,
 	getUsersByName,
+	getUsersByNameS,
 	putMessage
 };

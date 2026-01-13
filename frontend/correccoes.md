@@ -5,3 +5,5 @@ Antes de simplesmente criar uma chat baseado no cliente tem que primeiro verific
 
 
 REsolver porblemas d epossivel duplicacao de chats ....
+
+corrigir problemas nas queries de retornarem passwordhash, resolver no SQL mesmo
