@@ -1,16 +1,11 @@
-// types/chat.types.ts
-export interface Msg {
-	id: number;
-	chat_id: string;
-	user_id: number;
-	conteudo: string;
-	enviado_em: string;
-}
-
-export interface Participant {
+// Types.ts
+export interface User {
 	id: number;
 	user_name: string;
+	email_address: string;
 	profile_img: number;
+	created_at: string;
+	pedidos?: string[];
 }
 
 export interface Chat {
@@ -21,7 +16,15 @@ export interface Chat {
 	profile_img: number;
 	msgs: Msg[];
 	lastUser?: number | null;
-	participants: Participant[];
+	participants: User[];
+}
+
+export interface Msg {
+	id: number;
+	chat_id: string;
+	user_id: number;
+	conteudo: string;
+	enviado_em: string;
 }
 
 export interface ChatContextType {
