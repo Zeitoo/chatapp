@@ -2,7 +2,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useUser } from "./useUser";
 import { useChat } from "./useChat";
-
+import type { Chat, Msg } from "./Types";
 interface User {
 	id: number;
 	user_name: string;
@@ -11,24 +11,8 @@ interface User {
 	created_at: string;
 }
 
-interface Msg {
-	id: number;
-	chat_id: string;
-	user_id: number;
-	conteudo: string;
-	enviado_em: string; // ISO timestamp
-}
 
-interface Chat {
-	id: string;
-	tipo: "grupo" | "individual"; // se souberes os tipos possíveis
-	criado_em: string; // ISO timestamp
-	chat_name: string;
-	profile_img: number;
-	msgs: Msg[]; // array de mensagens
-	lastUser?: number | null;
-	participants: object[];
-}
+
 
 export function Requests() {
 	const navigate = useNavigate();
@@ -201,8 +185,8 @@ export function Requests() {
 
 	return (
 		<>
-			<div className="max-h-dvh fade pedidos overflow-y-auto ">
-				<div className="flex items-center">
+			<div className="max-h-dvh flex flex-col fade pedidos">
+				<div className="flex  items-center">
 					<div
 						onClick={() => {
 							backButtonHandler();
@@ -224,8 +208,8 @@ export function Requests() {
 					</div>
 					<h1 className="font-bold mx-2 m-5 text-xl">Pedidos</h1>
 				</div>
-				<div className="p-5 pr-2 text-sm  flex flex-col gap-4">
-					<div>
+				<div className="scroll-thin p-5 pr-2 flex-1 overflow-y-auto text-sm flex flex-col gap-4">
+					<div className="">
 						<p className="font-bold">Recebidos</p>
 						<div>
 							<div>

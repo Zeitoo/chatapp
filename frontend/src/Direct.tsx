@@ -62,10 +62,10 @@ function Direct() {
 		<>
 			<div className="flex text-gray-100 h-dvh">
 				<div
-					className={`fade ${
+					className={`fade flex flex-col max-h-dvh ${
 						openedChat ? "direct-sidebar" : "w-full"
 					} p-4 h-full bg-castanho md:w-125 text-sm`}>
-					<div className="flex justify-between items-center my-5">
+					<div className="flex justify-between  items-center my-5">
 						<div className="avatar flex justify-center  items-center gap-2">
 							<div className="avatar-profile overflow-hidden h-15 aspect-square rounded-[200px] bg-indigo-500">
 								<img
@@ -102,7 +102,7 @@ function Direct() {
 							</div>
 						)}
 					</div>
-					<div>
+					<div className="">
 						<input
 							className={`chat-search text-sm rounded-[500px] w-full outline-0  ${
 								openedChat
@@ -115,7 +115,7 @@ function Direct() {
 							placeholder="Search"
 						/>
 					</div>
-					<div className="my-5 flex justify-between items-center">
+					<div className="my-5  flex justify-between items-center">
 						<>
 							<h1
 								className={`no-select ${
@@ -132,7 +132,7 @@ function Direct() {
 							</Link>
 						</>
 					</div>
-					<div>
+					<div className="scroll-thin flex-1 overflow-y-auto">
 						<div className="flex flex-col">
 							<hr
 								className={`opacity-0  ${

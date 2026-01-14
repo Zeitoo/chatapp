@@ -15,7 +15,7 @@
 	--verde-2: #21bf63;
 	--cinza-1: #242626;
 	--cinza-2: #ffffff0a;
-	--cinza-3:  #ffffff09;
+	--cinza-3: #ffffff09;
 	--verde-1: #144d37;
 	--sb-track-color: #232e33;
 	--sb-thumb-color: #ffffff;
@@ -198,22 +198,22 @@ input.error {
 	border-color: rgba(255, 0, 0, 0.377);
 }
 
-.messages-wrapper::-webkit-scrollbar {
+.scroll-thin::-webkit-scrollbar {
 	width: var(--sb-size);
 }
 
-.messages-wrapper::-webkit-scrollbar-track {
+.scroll-thin::-webkit-scrollbar-track {
 	background: var(--sb-track-color);
 	border-radius: 5px;
 }
 
-.messages-wrapper::-webkit-scrollbar-thumb {
+.scroll-thin::-webkit-scrollbar-thumb {
 	background: var(--sb-thumb-color);
 	border-radius: 5px;
 }
 
 @supports not selector(::-webkit-scrollbar) {
-	.messages-wrapper {
+	.scoll-thin {
 		scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
 	}
 }
@@ -308,15 +308,13 @@ div[contenteditable]::-webkit-scrollbar-thumb {
 }
 
 .pedidos .profile,
-.new-chat .profile
-{
+.new-chat .profile {
 	background-color: var(--cinza-3);
-	transition: all .3s ease ;
+	transition: all 0.3s ease;
 }
 
-
 .pedidos .profile:hover,
-.new-chat .profile:hover{
+.new-chat .profile:hover {
 	background-color: var(--cinza-1);
 }
 

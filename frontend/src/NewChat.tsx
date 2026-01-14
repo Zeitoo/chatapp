@@ -241,7 +241,7 @@ export default function NewChat() {
 	}, []);
 
 	return (
-		<div className="new-chat fade">
+		<div className="new-chat max-h-dvh flex flex-col  fade">
 			<div className="p-5 mb-5 flex items-center gap-4">
 				<div
 					onClick={backButtonHandler}
@@ -274,7 +274,7 @@ export default function NewChat() {
 				/>
 			</div>
 
-			<div className="px-6 mt-4">
+			<div className="scroll-thin px-6 flex-1 mt-4 overflow-y-auto">
 				{loading && <p className="text-sm opacity-60">Buscando...</p>}
 
 				{results.length > 0 ? (
