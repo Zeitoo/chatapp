@@ -1,8 +1,7 @@
-import "./App.css";
 import logo from "../public/vite.svg";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { useUser } from "./useUser";
+import { useUser } from "./Hooks/useUser";
 
 function SignIn() {
 	const navigate = useNavigate();

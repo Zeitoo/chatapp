@@ -1,7 +1,7 @@
-import "./App.css";
+import "./styles/App.css";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { useUser } from "./useUser";
+import { useUser } from "./Hooks/useUser";
 
 function App() {
 	const navigate = useNavigate();

@@ -32,3 +32,33 @@ export interface ChatContextType {
 	openedChat: string | null;
 	setOpenedChats: React.Dispatch<React.SetStateAction<string | null>>;
 }
+// types/auth.types.ts
+export interface UserSignUp {
+	userName: string;
+	profileImg: number | undefined;
+	emailAddress: string;
+	password: string;
+}
+
+export interface SignUpFormData {
+	primeiroNome: string;
+	apelido: string;
+	emailAddress: string;
+	password: string;
+	avatar: number;
+}
+
+export interface ValidationError {
+	field: string;
+	message: string;
+}
+
+export interface SignUpStepProps {
+	formData: SignUpFormData;
+	onChange: (field: keyof SignUpFormData, value: string | number) => void;
+	onNext: () => void;
+	onBack?: () => void;
+	errors?: ValidationError[];
+	loading?: boolean;
+	apiError?: string | null;
+}

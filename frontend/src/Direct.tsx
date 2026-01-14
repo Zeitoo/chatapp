@@ -1,7 +1,6 @@
-import "./App.css";
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
-import { useUser } from "./useUser";
+import { useUser } from "./Hooks/useUser";
 
 function Direct() {
 	const host = import.meta.env.VITE_API_URL;
@@ -151,7 +150,6 @@ function Direct() {
 											}
 									  )
 									: "";
-
 
 								return (
 									<div

@@ -1,6 +1,6 @@
-import { useUser } from "./useUser";
+import { useUser } from "./Hooks/useUser";
 import { useEffect, useRef, useState } from "react";
-import { useChat } from "./useChat";
+import { useChat } from "./Hooks/useChat";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 interface User {

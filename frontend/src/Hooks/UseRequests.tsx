@@ -1,7 +1,7 @@
 // hooks/useRequests.ts
 import { useState, useCallback } from "react";
 import type { User } from "../Types";
-import { useUser } from "../useUser";
+import { useUser } from "./useUser";
 
 const host = import.meta.env.VITE_API_URL;
 

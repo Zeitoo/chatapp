@@ -1,8 +1,8 @@
 // Chat.tsx
 import { useEffect } from "react";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
-import { useUser } from "./useUser";
-import { useChat } from "./useChat";
+import { useUser } from "./Hooks/useUser";
+import { useChat } from "./Hooks/useChat";
 import { useCurrentChat } from "./Hooks/UseCurrentChat";
 import { useSendMessage } from "./Hooks/SendMessage";
 import type { ChatContextType } from "./Types";

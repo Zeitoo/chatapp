@@ -1,5 +1,5 @@
 // hooks/useSendMessage.ts
-import { useUser } from "../useUser";
+import { useUser } from "./useUser";
 
 export function useSendMessage() {
 	const { user } = useUser();
