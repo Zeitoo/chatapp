@@ -1,5 +1,5 @@
 import logo from "../public/vite.svg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";
 
@@ -264,11 +264,11 @@ function SignIn() {
 
 					<p className="text-sm text-center">
 						Nao tem uma conta?{" "}
-						<a
+						<Link
 							className="font-medium text-indigo-950"
-							href="">
+							to={"/signup"}>
 							Criar conta
-						</a>
+						</Link>
 					</p>
 				</div>
 

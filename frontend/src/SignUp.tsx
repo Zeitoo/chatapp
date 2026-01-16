@@ -1,5 +1,6 @@
 // SignUp.tsx
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useSignUp } from "./Hooks/UseSignUp";
 import { Step1Form } from "./Components/SignUp/Step1Form";
 import { Step2Form } from "./Components/SignUp/Step2Form";
@@ -102,11 +103,11 @@ export default function SignUp() {
 							</h1>
 							<p className="text-sm px-6 text-gray-600 pt-2">
 								Já tem uma conta?{" "}
-								<a
-									href="/login"
-									className="font-medium text-indigo-950 hover:underline">
+								<Link
+									className="font-medium text-indigo-950 hover:underline"
+									to="/signin">
 									Iniciar Sessão
-								</a>
+								</Link>
 							</p>
 						</>
 					)}

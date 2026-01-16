@@ -125,6 +125,10 @@ input.text {
 	background-color: #161717;
 }
 
+.chat-header {
+	backdrop-filter: blur(8px);
+}
+
 .chat-selector {
 	user-select: none;
 	cursor: pointer;
@@ -136,10 +140,11 @@ input.text {
 }
 
 .chat-wrapper {
-	background: url("/chat_bg.jpg");
+	background: url("/topography.svg");
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
+	background-color: black;
 }
 
 .cinza-1 {
