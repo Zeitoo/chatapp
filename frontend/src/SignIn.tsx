@@ -1,10 +1,11 @@
 import logo from "../public/vite.svg";
-import { useNavigate, Link } from "react-router-dom";
+import { useOutletContext, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";
 
 function SignIn() {
-	const navigate = useNavigate();
+	const setLogged =
+		useOutletContext<React.Dispatch<React.SetStateAction<boolean>>>();
 	const [hidePassword, setHidePassword] = useState<boolean>(true);
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [emailAddress, setEmailAddress] = useState<string>("");
@@ -28,20 +29,22 @@ function SignIn() {
 			const data = await response.json();
 
 			setUser(data.user);
+
 			setTimeout(() => {
-				navigate("/");
-			}, 500);
+				setLogged(true);
+			}, 200);
 
 			return;
 		} else {
 			const input = emailError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
+
 			input?.classList.add("error");
 
 			emailError.current!.innerText = "Credenciais invalidas";
 
 			const inputP = passwordError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			inputP?.classList.add("error");
 
 			passwordError.current!.innerText = "Credenciais invalidas";
@@ -55,20 +58,20 @@ function SignIn() {
 
 		if (!emailAddress.trim()) {
 			const input = emailError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			input?.classList.add("error");
 
 			emailError.current!.innerText = "Obrigatório";
 			temErro = true;
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
 			const input = emailError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			input?.classList.add("error");
 			emailError.current!.innerText = "Email inválido";
 			temErro = true;
 		} else {
 			const input = emailError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			input?.classList.remove("error");
 
 			emailError.current!.innerText = "";
@@ -76,14 +79,14 @@ function SignIn() {
 
 		if (password.length < 6) {
 			const input = passwordError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			input?.classList.add("error");
 
 			passwordError.current!.innerText = "Deve ter 6 no minimo";
 			temErro = true;
 		} else {
 			const input = passwordError.current
-				?.previousSibling as HTMLElement | null;
+				?.previousElementSibling as HTMLElement | null;
 			input?.classList.remove("error");
 
 			passwordError.current!.innerText = "";
@@ -110,12 +113,14 @@ function SignIn() {
 	};
 
 	useEffect(() => {
-		document.title = "Inicio de Sessão";
-
 		if (hasError) {
 			validarStep1();
 		}
-	}, [emailAddress, password, hasError]);
+	}, [emailAddress, password]);
+
+	useEffect(() => {
+		document.title = "Inicio de Sessão";
+	}, []);
 
 	return (
 		<>

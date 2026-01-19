@@ -187,7 +187,7 @@ export default function NewChat() {
 				if (res.ok) {
 					let data: User[] = await res.json();
 
-					console.log(data);
+					
 					data = data.map((element) => {
 						privateChats?.forEach((chat) => {
 							if (chat.chat_name === element.user_name) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useUser } from "./Hooks/useUser";
+import { useChat } from "./Hooks/useChat";
 
 function Direct() {
 	const host = import.meta.env.VITE_API_URL;
@@ -8,24 +9,7 @@ function Direct() {
 
 	const navigate = useNavigate();
 
-	interface Msg {
-		id: number;
-		chat_id: string;
-		user_id: number;
-		conteudo: string;
-		enviado_em: string; // ISO timestamp
-	}
-
-	interface Chat {
-		id: string;
-		tipo: string; // se souberes os tipos possíveis
-		criado_em: string; // ISO timestamp
-		chat_name: string;
-		profile_img: number;
-		msgs: Msg[]; // array de mensagens
-	}
-
-	const [chats, setChats] = useState<Chat[] | null>(null);
+	const { chats, setChats } = useChat();
 
 	const { user } = useUser();
 

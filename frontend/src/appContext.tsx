@@ -12,6 +12,7 @@ export type UserType = {
 export interface AppContextType {
 	user: UserType | null;
 	setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
+	ws: React.RefObject<WebSocket | null>;
 }
 
 export const appContext = createContext<AppContextType | undefined>(undefined);

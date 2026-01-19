@@ -27,9 +27,10 @@ export default function Chat() {
 	};
 
 	const handleSendMessage = (content: string) => {
-		sendMessage(chatid, content);
+		sendMessage(currentChat, content);
 	};
 
+	
 	// Efeito para gerenciar estado do chat aberto
 	useEffect(() => {
 		if (!chatid) return;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { appContext } from "./appContext";
 
 export type UserType = {
@@ -12,9 +12,10 @@ export type UserType = {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<UserType | null>(null);
+	const ws = useRef<WebSocket | null>(null);
 
 	return (
-		<appContext.Provider value={{ user, setUser }}>
+		<appContext.Provider value={{ user, setUser, ws }}>
 			{children}
 		</appContext.Provider>
 	);
