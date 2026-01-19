@@ -396,14 +396,5 @@ curl http://localhost:3000/
 
 ---
 
-*Documentação criada em: Janeiro 2024*  
-*Última atualização: Janeiro 2024*  
-*Mantenha este arquivo atualizado conforme mudanças na API!*
-
----
-
-**Precisa de ajuda?**  
-1. Verifique os logs do servidor  
-2. Confira se todas as tabelas existem no banco  
-3. Teste as rotas individualmente com curl  
-4. Verifique conexão WebSocket com wscat
+*Documentação criada em: Janeiro 2026*  
+*Última atualização: Janeiro 2026*  
