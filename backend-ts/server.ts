@@ -22,10 +22,12 @@ import {
 	putNewChat,
 } from "./models/models";
 
+import http from "http";
+import WebSocket, { WebSocketServer } from "ws";
+
 dotenv.config();
 
 const app = express();
-const port = 3000;
 const lanAddress = process.env.LAN_HOST as string;
 
 app.use(express.json());
@@ -39,10 +41,9 @@ app.use(
 );
 app.use(cookieParser());
 
-app.listen(port, () => {
-	console.log(`Server is running on http://localhost:${port}`);
-});
+const server = http.createServer(app);
 
+const wss = new WebSocketServer({ server });
 /* ================= Utils ================= */
 
 const token = (ip: string): string => {
@@ -83,6 +84,7 @@ async function verifyAuth(req: Request, res: Response, next: NextFunction) {
 		"";
 
 	const accessToken = req.cookies?.access_token as string | undefined;
+	console.log(accessToken);
 
 	if (!accessToken) {
 		return res.status(401).json({ message: "Login required..." });
@@ -163,21 +165,20 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.get("/status", verifyAuth, async (req: Request, res: Response) => {
 	const accessToken = req.cookies?.access_token as string;
+	console.log(accessToken);
 
 	const user = await getUsersByToken(accessToken);
-	if (user[0]?.id) {
-		const response = await getPedidos(user[0].id);
+	const response = await getPedidos(user[0].id);
 
-		const pedidos: string[][] = [];
+	const pedidos: string[][] = [];
 
-		for (const c of response) {
-			const pedido = c.fromto.split(",");
-			if (pedido.includes(String(user[0].id))) pedidos.push(pedido);
-		}
-
-		user[0].pedidos = pedidos;
-		return res.status(200).json(user);
+	for (const c of response) {
+		const pedido = c.fromto.split(",");
+		if (pedido.includes(String(user[0].id))) pedidos.push(pedido);
 	}
+
+	user[0].pedidos = pedidos;
+	return res.status(200).json(user);
 });
 
 app.post("/chats", async (req: Request, res: Response) => {
@@ -241,7 +242,7 @@ app.get("/user/search/:user_name", async (req: Request, res: Response) => {
 		return res.status(400).json({ message: "user required" });
 	}
 
-	const user = await getUsersByNameS(user_name[0]);
+	const user = await getUsersByNameS(user_name);
 	if (!user) {
 		return res.status(404).json({ message: "user not found" });
 	}
@@ -301,4 +302,87 @@ app.delete("/pedido", async (req: Request, res: Response) => {
 	}
 
 	return res.status(404).json({ message: "Pedido não encontrado." });
+});
+
+type User = {
+	userId: string;
+	socket: WebSocket;
+};
+
+const users = new Map<string, User>();
+
+interface Chat {
+	id: string;
+	tipo: string;
+	criado_em: string;
+	chat_name: string;
+	profile_img: number;
+	participants: User[];
+}
+
+interface Data {
+	titulo: string;
+	body: {
+		content: string;
+		chat: Chat;
+	};
+}
+
+interface AuthenticatedSocket extends WebSocket {
+	userId?: number;
+}
+
+wss.on("connection", async (ws: AuthenticatedSocket, req) => {
+	console.log("User Connected...");
+	const params = new URLSearchParams(req.url?.split("?")[1]);
+	const userId = params.get("userId");
+
+	if (!userId) {
+		return;
+	}
+	users.set(userId, { userId, socket: ws });
+
+	ws.on("message", async (message: Buffer) => {
+		const data: Data = JSON.parse(message.toString());
+
+		switch (data.titulo) {
+			case "newMsg":
+				const conteudo = data.body.content;
+				const chatId = data.body.chat.id;
+				const participants = data.body.chat.participants;
+				const enviado_em = new Date().toISOString();
+				const targets: User[] = [];
+
+				const response = await putMessage({ chatId, userId, conteudo });
+				if (!response?.affectedRows) {
+					return;
+				}
+
+				for (let user of users.keys()) {
+					participants.forEach((element) => {
+						if (element.id == user) {
+							targets.push(users.get(user));
+						}
+					});
+				}
+
+				for (let target of targets) {
+					target.socket.send(
+						JSON.stringify({
+							titulo: "newMsg",
+							conteudo,
+							chat_id: chatId,
+							user_id: Number(userId),
+							enviado_em,
+						})
+					);
+				}
+		}
+	});
+
+	ws.on("close", () => {});
+});
+
+server.listen(3000, () => {
+	console.log("HTTP + WS rodando na porta 3000");
 });

@@ -26,9 +26,11 @@ export interface Message {
 }
 
 export interface Chat {
-	id?: string;
-	tipo?: string;
-	[k: string]: any;
+	id: string;
+	tipo: string;
+	criado_em: string;
+	chat_name: string;
+	profile_img: number;
 }
 
 function fecharPool() {
@@ -217,7 +219,7 @@ export const putUser = async (user: {
 
 export const putMessage = async (messageData: {
 	chatId: string;
-	userId: number;
+	userId: number | string;
 	conteudo: string;
 }): Promise<AnyRow | null> => {
 	try {
