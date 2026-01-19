@@ -1,1 +1,0 @@
-Tem um bug na path pedidos. problemas com direct-sidebar
