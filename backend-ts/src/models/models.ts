@@ -1,5 +1,5 @@
 // models.ts
-import type { Pool } from "mysql2/promise";
+import type { Pool, RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
 import { pool } from "../config/config_db";
 
@@ -46,12 +46,13 @@ function hashPassword(password: string) {
 }
 
 /* Helpers */
-async function query<T = AnyRow[]>(sql: string, params?: any[]) {
-	// wrapper para tipar e centralizar chamadas
-	const [rows] = await pool.query<T & AnyRow[]>(sql, params);
-	return rows as unknown as T;
+async function query<T = RowDataPacket[]>(
+	sql: string,
+	params?: any[]
+): Promise<T> {
+	const [rows] = await pool.query<RowDataPacket[]>(sql, params);
+	return rows as T;
 }
-
 /* Queries */
 
 export const getChats = async (userId: number): Promise<Chat[]> => {

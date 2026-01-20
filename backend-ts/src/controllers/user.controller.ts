@@ -1,0 +1,60 @@
+import { Request, Response } from "express";
+import {
+	getUsersByNameS,
+	getUsers,
+	getUsersByToken,
+	getPedidos,
+} from "../models/models";
+
+export class UserController {
+	static async searchByName(req: Request, res: Response) {
+		// Extrai user_name como string (pode ser string ou string[])
+		const user_name = req.params.user_name;
+		const userName = Array.isArray(user_name) ? user_name[0] : user_name;
+
+		if (!userName) {
+			return res.status(400).json({ message: "user required" });
+		}
+
+		const users = await getUsersByNameS(userName);
+		if (!users || users.length === 0) {
+			return res.status(404).json({ message: "user not found" });
+		}
+
+		const userData = users[0];
+		delete userData.password_hash;
+		return res.status(200).json(userData);
+	}
+
+	static async getUsersByIds(req: Request, res: Response) {
+		const reqUsers: number[] = req.body.users;
+
+		if (reqUsers && reqUsers.length > 0) {
+			const users = await getUsers(reqUsers);
+			return res.status(200).json(users);
+		}
+
+		return res.status(200).json({ message: "nenhum user encontrado..." });
+	}
+
+	static async getStatus(req: Request, res: Response) {
+		const accessToken = req.cookies?.access_token as string;
+		const user = await getUsersByToken(accessToken);
+
+		if (!user || user.length === 0 || !user[0].id) {
+			return res.status(401).json({ message: "Não autorizado" });
+		}
+
+		const response = await getPedidos(user[0].id);
+
+		const pedidos: string[][] = [];
+
+		for (const c of response) {
+			const pedido = c.fromto.split(",");
+			if (pedido.includes(String(user[0].id))) pedidos.push(pedido);
+		}
+
+		user[0].pedidos = pedidos;
+		return res.status(200).json(user);
+	}
+}
