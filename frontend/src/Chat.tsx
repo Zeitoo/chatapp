@@ -39,7 +39,7 @@ export default function Chat() {
 	}, [chatid, setIsChatOpen, setOpenedChats]);
 
 	if (!currentChat) {
-		return <ChatNotFound />;
+		return <ChatNotFound setOpenedChats={setOpenedChats} />;
 	}
 
 	return (

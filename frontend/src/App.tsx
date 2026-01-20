@@ -76,7 +76,9 @@ function App() {
 						setUser(data[0]);
 					});
 
-					navigate("/direct");
+					if (route.pathname === "/") {
+						navigate("/direct");
+					}
 				}
 			});
 		}

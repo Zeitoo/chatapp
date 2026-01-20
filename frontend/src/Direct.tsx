@@ -1,11 +1,18 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, Link } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useUser } from "./Hooks/useUser";
 import { useChat } from "./Hooks/useChat";
 
 function Direct() {
+	const route = useLocation();
 	const host = import.meta.env.VITE_API_URL;
-	const [openedChat, setOpenedChats] = useState<string | null>(null);
+	let chatId = route.pathname.replaceAll("/", "").replace("direct", "");
+
+	const [hasPedidos, setHasPedidos] = useState<boolean>(false);
+
+	const [openedChat, setOpenedChats] = useState<string | null>(
+		chatId.length > 0 ? chatId : null
+	);
 
 	const navigate = useNavigate();
 
@@ -23,6 +30,10 @@ function Direct() {
 		}
 		setTimeout(() => {
 			if (!user) return;
+
+			if (user.pedidos) {
+				user.pedidos.length > 0 ? setHasPedidos(true) : "";
+			}
 
 			fetch(`${host}/chats`, {
 				method: "POST",
@@ -109,6 +120,8 @@ function Direct() {
 							<Link
 								className={`${
 									openedChat ? "hidden md:block" : ""
+								} ${
+									hasPedidos ? "text-green-400 font-bold" : ""
 								}`}
 								to={"pedidos"}>
 								Pedidos
@@ -123,7 +136,14 @@ function Direct() {
 								}`}
 							/>
 							{chats?.map((element) => {
+								let lastMessage;
 								const timeStamp = element.msgs?.[0]?.enviado_em;
+
+								if (element.msgs.length !== 0) {
+									lastMessage =
+										element.msgs[element.msgs.length - 1]
+											.conteudo;
+								}
 
 								const hora = timeStamp
 									? new Date(timeStamp).toLocaleTimeString(
@@ -161,7 +181,7 @@ function Direct() {
 												{element.chat_name}
 											</p>
 											<p className="truncate-2">
-												{element.msgs?.[0]?.conteudo}
+												{lastMessage}
 											</p>
 										</div>
 

@@ -1,7 +1,7 @@
 // components/signup/Step2Form.tsx
 import type { SignUpStepProps } from "../../Types";
 
-const AVATAR_COUNT = 115;
+const AVATAR_COUNT = 95;
 
 export function Step2Form({
 	formData,
@@ -17,8 +17,8 @@ export function Step2Form({
 				e.preventDefault();
 				onNext();
 			}}>
-			<div className="px-5 max-h-72 avatar-wrapper rounded-4xl overflow-y-auto overflow-x-hidden py-5 pb-0">
-				<div className="grid grid-cols-3 gap-3">
+			<div className="px-5 max-h-82 avatar-wrapper rounded-4xl overflow-y-auto overflow-x-hidden py-5 pb-0">
+				<div className="grid pb-10 grid-cols-3 gap-3">
 					{avatars.map((avatarNumber) => (
 						<button
 							type="button"

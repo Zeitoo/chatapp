@@ -88,11 +88,11 @@ export default function SignUp() {
 
 	return (
 		<div className="background sign-up relative w-dvw h-dvh flex items-center justify-center">
-			<div className="p-5 h-130 w-80 bg-wrapper-login md:w-125 rounded-l-lg bg-white z-10">
+			<div className="p-5 h-140 w-80 bg-wrapper-login md:w-125 rounded-l-lg bg-white z-10">
 				<div className="bg-img rounded-2xl"></div>
 			</div>
 
-			<div className="form-container h-130 w-90 flex flex-col bg-white rounded-r-lg">
+			<div className="form-container h-140 w-90 flex flex-col bg-white rounded-r-lg">
 				<div className="mt-12">
 					<div className="flex justify-center">{renderAvatar()}</div>
 

@@ -1,9 +1,10 @@
 import logo from "../public/vite.svg";
-import { useOutletContext, Link } from "react-router-dom";
+import { useNavigate, useOutletContext, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";
 
 function SignIn() {
+	const navigate = useNavigate();
 	const setLogged =
 		useOutletContext<React.Dispatch<React.SetStateAction<boolean>>>();
 	const [hidePassword, setHidePassword] = useState<boolean>(true);
@@ -32,7 +33,9 @@ function SignIn() {
 
 			setTimeout(() => {
 				setLogged(true);
-			}, 200);
+			}, 1000);
+
+			navigate("/");
 
 			return;
 		} else {
