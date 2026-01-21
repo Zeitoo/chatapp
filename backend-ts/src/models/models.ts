@@ -34,8 +34,6 @@ export interface Chat {
 }
 
 function fecharPool() {
-	// Mantive a tua ideia original — só que não fazer pool.end() aqui
-	// porque isso fecha o pool para todo o resto da app.
 	setTimeout(() => {
 		// pool.end();
 	}, 20000);
@@ -149,6 +147,7 @@ export const getUsersByNameS = async (
 	);
 
 	if (!rows || rows.length === 0) return false;
+	console.log(typeof rows);
 	return rows;
 };
 
@@ -214,7 +213,7 @@ export const putUser = async (user: {
 		) {
 			return null;
 		}
-		throw e;
+		return null;
 	}
 };
 
@@ -238,14 +237,19 @@ export const putMessage = async (messageData: {
 export const putPedido = async (
 	remetente: string,
 	destinatario: string
-): Promise<AnyRow> => {
+): Promise<AnyRow | null> => {
 	const combined = `${remetente},${destinatario}`;
-	const rows = await query<AnyRow[]>(
-		`INSERT INTO pedidos (fromto) VALUES (?);`,
-		[combined]
-	);
 
-	return rows;
+	try {
+		const rows = await query<AnyRow[]>(
+			`INSERT INTO pedidos (fromto) VALUES (?);`,
+			[combined]
+		);
+
+		return rows;
+	} catch (error: any) {
+		return null;
+	}
 };
 
 export const deletePedido = async (pedido: string): Promise<boolean> => {

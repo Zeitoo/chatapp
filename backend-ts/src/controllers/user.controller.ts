@@ -21,14 +21,16 @@ export class UserController {
 			return res.status(404).json({ message: "user not found" });
 		}
 
-		const userData = users[0];
-		delete userData.password_hash;
+		const userData = users.map((element) => {
+			delete element.password_hash;
+			return element;
+		});
+
 		return res.status(200).json(userData);
 	}
 
 	static async getUsersByIds(req: Request, res: Response) {
 		const reqUsers: number[] = req.body.users;
-
 		if (reqUsers && reqUsers.length > 0) {
 			const users = await getUsers(reqUsers);
 			return res.status(200).json(users);

@@ -8,6 +8,10 @@ export class AuthController {
 		const ip = req.socket.remoteAddress ?? "";
 		const { email, password } = req.body;
 
+		if (!email || !password) {
+			return res.status(400).json({ message: "Dados insuficientes." });
+		}
+
 		const users = await getUsersByEmail(email);
 		if (!users || users.length === 0) {
 			return res.status(401).json({ message: "Credenciais inválidas." });
@@ -52,6 +56,8 @@ export class AuthController {
 
 	static async signup(req: Request, res: Response) {
 		const user = req.body;
+
+		if (!user.userName || !user.emailAddress || !user.password) return;
 
 		// Hash da senha antes de armazenar
 		user.password_hash = hashPassword(user.password);
