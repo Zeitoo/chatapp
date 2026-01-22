@@ -32,6 +32,7 @@ function App() {
 
 		ws.current.onmessage = (message) => {
 			const data = JSON.parse(message.data);
+			console.log(data)
 			if (data.titulo === "newMsg") {
 				delete data.titulo;
 				const tempChats = [];
@@ -67,20 +68,22 @@ function App() {
 
 	useEffect(() => {
 		if (!route.pathname.includes("sign") || logged) {
-			fetch(`${host}/status`, { credentials: "include" }).then((res) => {
-				if (res.status !== 200) {
-					navigate("/signin");
-				} else {
-					res.json().then((data) => {
-						connectTowebsocket(data[0].id);
-						setUser(data[0]);
-					});
+			fetch(`${host}/api/users/status/`, { credentials: "include" }).then(
+				(res) => {
+					if (res.status !== 200) {
+						navigate("/signin");
+					} else {
+						res.json().then((data) => {
+							connectTowebsocket(data[0].id);
+							setUser(data[0]);
+						});
 
-					if (route.pathname === "/") {
-						navigate("/direct");
+						if (route.pathname === "/") {
+							navigate("/direct");
+						}
 					}
 				}
-			});
+			);
 		}
 
 		return () => {

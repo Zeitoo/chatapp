@@ -35,10 +35,9 @@ function Direct() {
 				user.pedidos.length > 0 ? setHasPedidos(true) : "";
 			}
 
-			fetch(`${host}/chats`, {
+			fetch(`${host}/api/chats/`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(user),
+				credentials: "include",
 			})
 				.then((res) => res.json())
 				.then((data) => {
@@ -51,6 +50,10 @@ function Direct() {
 				});
 		}, 500);
 	}, [user, openedChat]);
+
+	useEffect(() => {
+		document.title = "Direct";
+	}, []);
 
 	return (
 		<>

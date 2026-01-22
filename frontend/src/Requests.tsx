@@ -32,6 +32,10 @@ export function Requests() {
 		setOpenedChats("abcd");
 	}, [loadRequests, setIsChatOpen, setOpenedChats]);
 
+	useEffect(() => {
+		document.title = "Pedidos"
+	}, [])
+
 	return (
 		<div className="max-h-dvh flex flex-col fade pedidos">
 			<RequestsHeader

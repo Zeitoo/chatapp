@@ -95,11 +95,5 @@ async function handleNewMessage(
 		}
 	}
 
-	senderWs.send(
-		JSON.stringify({
-			titulo: "messageSent",
-			chat_id: chatId,
-			enviado_em,
-		})
-	);
+	
 }

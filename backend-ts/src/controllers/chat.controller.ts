@@ -1,48 +1,73 @@
-import { Request, Response } from 'express';
-import { enrichChatsWithData } from '../utils/chat.helpers';
-import { putMessage, putNewChat, deletePedido } from '../models/models';
-import { generateId } from '../utils/token';
+import { Request, Response } from "express";
+import { enrichChatsWithData } from "../utils/chat.helpers";
+import {
+	putMessage,
+	putNewChat,
+	deletePedido,
+	getPedidos,
+	getUsersIdByToken,
+	getPedido,
+	getPrivateChatBetweenUsers,
+} from "../models/models";
+import { generateId } from "../utils/token";
 
 export class ChatController {
-  static async getChats(req: Request, res: Response) {
-    const user = req.body;
+	static async getChats(req: Request, res: Response) {
+		const accessToken = req.cookies?.access_token as string;
 
-    if (user?.id) {
-      const chatsWithMsgs = await enrichChatsWithData(user.id);
-      return res.status(200).json(chatsWithMsgs);
-    }
+		if (accessToken) {
+			const { user_id } = await getUsersIdByToken(accessToken);
 
-    return res.json({ message: 'failed' });
-  }
+			if (user_id) {
+				const chatsWithMsgs = await enrichChatsWithData(user_id);
+				return res.status(200).json(chatsWithMsgs);
+			}
 
-  static async newMessage(req: Request, res: Response) {
-    const { chatId, conteudo, userId } = req.body;
+			return res.json({ message: "failed" });
+		}
+	}
 
-    await putMessage({ chatId, conteudo, userId });
-    return res.status(200).send('done');
-  }
+	static async newMessage(req: Request, res: Response) {
+		const { chatId, conteudo, userId } = req.body;
 
-  static async newChat(req: Request, res: Response) {
-    const users: number[] = req.body.users;
-    const response = await putNewChat(generateId(), users);
+		await putMessage({ chatId, conteudo, userId });
+		return res.status(200).send("done");
+	}
 
-    if (!response) {
-      return res.status(400).json({
-        message: 'Houve um erro na criacao do chat...',
-      });
-    }
+	static async newChat(req: Request, res: Response) {
+		const accessToken = req.cookies?.access_token as string;
+		const users: number[] = req.body.users;
+		const { user_id } = await getUsersIdByToken(accessToken);
+		if (!users.includes(user_id)) return;
+		const pedido = users.join(",");
 
-    const pedido = users.join(',');
-    const deleted = await deletePedido(pedido);
+		const answer = await getPedido(pedido);
+		if (!answer) return;
+		const chatAllreadyExixts = await getPrivateChatBetweenUsers(
+			users[0],
+			users[1]
+		);
 
-    if (deleted) {
-      return res.status(200).json({
-        message: 'Chat criado com sucesso',
-      });
-    }
+		if (chatAllreadyExixts) return;
 
-    return res.status(400).json({
-      message: 'Houve um erro na criacao do chat...',
-    });
-  }
+		const response = await putNewChat(generateId(), users);
+
+		if (!response) {
+			return res.status(400).json({
+				message: "Houve um erro na criacao do chat...",
+			});
+		}
+
+		const deleted = await deletePedido(pedido);
+
+		if (deleted) {
+			return res.status(200).json({
+				message: "Chat criado com sucesso",
+			});
+		}
+
+		return res.status(400).json({
+			message: "Houve um erro na criacao do chat...",
+		});
+	}
 }

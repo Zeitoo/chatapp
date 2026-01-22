@@ -19,7 +19,7 @@ function SignIn() {
 	const host = import.meta.env.VITE_API_URL;
 
 	const mandarDados = async (dados: string) => {
-		const response = await fetch(`${host}/login/`, {
+		const response = await fetch(`${host}/api/auth/login/`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: dados,

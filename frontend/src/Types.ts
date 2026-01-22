@@ -10,7 +10,7 @@ export interface User {
 
 export interface Chat {
 	id: string;
-	tipo: "grupo" | "individual";
+	tipo: "grupo" | "privado";
 	criado_em: string;
 	chat_name: string;
 	profile_img: number;

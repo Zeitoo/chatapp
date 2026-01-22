@@ -1,5 +1,5 @@
 // models.ts
-import type { Pool, RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { Pool, RowDataPacket } from "mysql2/promise";
 
 import { pool } from "../config/config_db";
 
@@ -86,6 +86,28 @@ export const getChatMessages = async (chatId: string): Promise<Message[]> => {
 	return rows;
 };
 
+export const getPrivateChatBetweenUsers = async (
+	userId1: number,
+	userId2: number
+): Promise<{ chat_id: string } | null> => {
+	const rows = await query<{ chat_id: string }[]>(
+		`
+		SELECT c.id AS chat_id
+		FROM chats c
+		JOIN chat_users cu ON cu.chat_id = c.id
+		WHERE c.tipo = 'privado'
+		  AND cu.user_id IN (?, ?)
+		GROUP BY c.id
+		HAVING COUNT(DISTINCT cu.user_id) = 2
+		LIMIT 1;
+		`,
+		[userId1, userId2]
+	);
+
+	fecharPool();
+	return rows.length > 0 ? rows[0] : null;
+};
+
 export const getUser = async (userId: number): Promise<User[]> => {
 	const rows = await query<User[]>(`SELECT * FROM users WHERE id = ?;`, [
 		userId,
@@ -99,6 +121,18 @@ export const getUsersByToken = async (token: string): Promise<User[]> => {
 	const rows = await query<User[]>(
 		`SELECT u.* FROM users u
      WHERE u.id = (SELECT user_id FROM tokens WHERE token = ?);`,
+		[token]
+	);
+
+	fecharPool();
+	return rows;
+};
+
+export const getUsersIdByToken = async (
+	token: string
+): Promise<{ user_id: number }> => {
+	const [rows] = await query<[{ user_id: number }]>(
+		`SELECT user_id FROM tokens WHERE token = ?;`,
 		[token]
 	);
 
@@ -169,6 +203,17 @@ export const getPedidos = async (
 	const rows = await query<AnyRow[]>(
 		`SELECT * FROM pedidos WHERE fromto LIKE ?;`,
 		[`%${userId}%`]
+	);
+
+	return rows;
+};
+
+export const getPedido = async (
+	pedido: string
+): Promise<undefined | { fromto: string }> => {
+	const [rows] = await query<[] | [{ fromto: string }]>(
+		`SELECT * FROM pedidos WHERE fromto = ?;`,
+		[pedido]
 	);
 
 	return rows;
@@ -287,25 +332,4 @@ export const putNewChat = async (
 	} else {
 		return false;
 	}
-};
-
-/* Default export para compatibilidade com código CommonJS antigo */
-export default {
-	putPedido,
-	putNewChat,
-	deletePedido,
-	getPedidos,
-	getUsers,
-	putUser,
-	getChats,
-	getChatParticipants,
-	getChatMessages,
-	getUser,
-	getUsersByEmail,
-	getAccessToken,
-	putAccessToken,
-	getUsersByToken,
-	getUsersByName,
-	getUsersByNameS,
-	putMessage,
 };

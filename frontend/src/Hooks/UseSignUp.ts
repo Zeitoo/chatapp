@@ -72,7 +72,7 @@ export function useSignUp() {
 				profileImg: formData.avatar,
 			});
 			
-			const response = await fetch(`${host}/signup`, {
+			const response = await fetch(`${host}/api/auth/signup`, {
 				method: 'POST',
 				body: JSON.stringify(safePayload),
 				headers: {
@@ -111,7 +111,7 @@ export function useSignUp() {
 			
 			// Redireciona após delay
 			setTimeout(() => {
-				navigate('/');
+				navigate('/login');
 			}, 2000);
 			
 			return true;

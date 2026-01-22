@@ -2,7 +2,7 @@ import { useUser } from "./Hooks/useUser";
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "./Hooks/useChat";
 import { useNavigate, useOutletContext } from "react-router-dom";
-
+import type { Chat } from "./Types";
 interface User {
 	id: number;
 	user_name: string;
@@ -12,29 +12,11 @@ interface User {
 	allready: undefined | "sent" | "recieved" | "inChat";
 }
 
-interface Msg {
-	id: number;
-	chat_id: string;
-	user_id: number;
-	conteudo: string;
-	enviado_em: string;
-}
-
-interface Chat {
-	id: string;
-	tipo: string;
-	criado_em: string;
-	chat_name: string;
-	profile_img: number;
-	msgs: Msg[];
-	lastUser?: number | null;
-	participants: object[];
-}
-
 export default function NewChat() {
 	const [inputValue, setInputValue] = useState<string>("");
 	const [results, setResults] = useState<User[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [fecthData, setFetchData] = useState<User[] | []>([]);
 
 	const timeoutRef = useRef<number | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
@@ -56,7 +38,7 @@ export default function NewChat() {
 	};
 
 	const deletFetch = async (pedido: string) => {
-		const response = await fetch(`${host}/pedido`, {
+		const response = await fetch(`${host}/api/pedidos/`, {
 			method: "DELETE",
 			body: JSON.stringify({
 				pedido,
@@ -74,7 +56,7 @@ export default function NewChat() {
 	};
 
 	const putChatFetch = async (userId: number) => {
-		fetch(`${host}/new_chat`, {
+		fetch(`${host}/api/chats/new_chat`, {
 			method: "PUT",
 			body: JSON.stringify({
 				users: [userId, user?.id],
@@ -82,8 +64,11 @@ export default function NewChat() {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 		}).then((res) => {
+			
 			if (res.ok) {
+				console.log("sucesso...");
 				if (!user?.pedidos) {
 					return;
 				}
@@ -99,6 +84,8 @@ export default function NewChat() {
 					created_at: user?.created_at,
 					pedidos: pedidos,
 				});
+			} else {
+				console.log(res);
 			}
 		});
 	};
@@ -153,14 +140,70 @@ export default function NewChat() {
 		});
 	};
 
-	useEffect(() => {
+	const putPedido = async (userId: number) => {
+		const destinatario = userId.toString();
+		const remetente = user?.id?.toString();
+		const pedido = `${remetente},${destinatario}`;
+
+		try {
+			const response = await fetch(`${host}/api/pedidos`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					pedido,
+				}),
+			});
+
+			if (response.ok) {
+				const tempUser = structuredClone(user);
+
+				tempUser?.pedidos.push(pedido.split(","));
+				setUser(tempUser);
+			}
+		} catch {
+			console.log("deu erro");
+		}
+	};
+
+	const tratarUsers = (data: User[]) => {
 		let privateChats = null;
 		if (chats) {
 			privateChats = chats.filter(
 				(element) => element.tipo === "privado"
 			);
 		}
+		data = data.map((element) => {
+			privateChats?.forEach((chat) => {
+				if (chat.chat_name === element.user_name) {
+					element.allready = "inChat";
+				}
+			});
+			return element;
+		});
 
+		data.map((element) => {
+			if (user?.pedidos) {
+				const pedido = user?.pedidos.filter((pedido) => {
+					return pedido.includes(String(element.id));
+				});
+
+				if (pedido.length > 0) {
+					pedido[0],
+						pedido[0].indexOf(String(user?.id)) === 0
+							? (element.allready = "sent")
+							: (element.allready = "recieved");
+				}
+			}
+		});
+
+		setResults(data);
+	};
+
+	useEffect(() => {
+		tratarUsers(fecthData);
+	}, [fecthData, user]);
+
+	useEffect(() => {
 		const query = inputValue.trim();
 
 		if (query.length < 5) {
@@ -180,40 +223,16 @@ export default function NewChat() {
 
 			try {
 				const res = await fetch(
-					`${host}/user/search/${encodeURIComponent(query)}`,
+					`${host}/api/users/search/${encodeURIComponent(query)}`,
 					{ signal: abortRef.current.signal }
 				);
 
 				if (res.ok) {
 					let data: User[] = await res.json();
 
-					
-					data = data.map((element) => {
-						privateChats?.forEach((chat) => {
-							if (chat.chat_name === element.user_name) {
-								element.allready = "inChat";
-							}
-						});
-						return element;
-					});
-
-					data.map((element) => {
-						if (user?.pedidos) {
-							const pedido = user?.pedidos.filter((pedido) => {
-								return pedido.includes(String(element.id));
-							});
-
-							if (pedido.length > 0) {
-								pedido[0],
-									pedido[0].indexOf(String(user?.id)) === 0
-										? (element.allready = "sent")
-										: (element.allready = "recieved");
-							}
-						}
-					});
-					setResults(data);
+					setFetchData(data);
 				} else {
-					setResults([]);
+					setFetchData([]);
 				}
 			} catch (err: any) {
 				if (err.name !== "AbortError") {
@@ -227,17 +246,19 @@ export default function NewChat() {
 		return () => {
 			if (timeoutRef.current) clearTimeout(timeoutRef.current);
 		};
-	}, [inputValue, user]);
+	}, [inputValue]);
 
 	const backButtonHandler = () => {
 		setIsChatOpen(false);
 		setOpenedChats(null);
+		document.title = "Direct";
 		navigate("/direct");
 	};
 
 	useEffect(() => {
 		setIsChatOpen(true);
 		setOpenedChats("abcd");
+		document.title = "New Chats";
 	}, []);
 
 	return (
@@ -283,7 +304,9 @@ export default function NewChat() {
 							<div
 								key={u.id}
 								className={`p-4 my-2 ${
-									u.allready === "inChat"
+									u.allready === "inChat" ||
+									u.allready === "sent" ||
+									u.allready === "recieved"
 										? "bg-green-1"
 										: "profile"
 								} cursor-pointer rounded-lg flex justify-between hover:opacity-80`}>
@@ -376,7 +399,12 @@ export default function NewChat() {
 
 								{!u.allready ? (
 									<div className="flex items-center">
-										<button className="cursor">
+										<button
+											onClick={(e) => {
+												e.preventDefault();
+												putPedido(u.id);
+											}}
+											className="cursor">
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
 												fill="none"

@@ -21,21 +21,24 @@ export default function Chat() {
 	const { sendMessage } = useSendMessage();
 
 	const handleBack = () => {
-		navigate("/direct");
 		setIsChatOpen(false);
 		setOpenedChats(null);
+		document.title = "Direct";
+		navigate("/direct");
 	};
 
 	const handleSendMessage = (content: string) => {
 		sendMessage(currentChat, content);
 	};
 
-	
 	// Efeito para gerenciar estado do chat aberto
 	useEffect(() => {
 		if (!chatid) return;
 		setIsChatOpen(true);
 		setOpenedChats(chatid);
+		if (currentChat) {
+			document.title = currentChat?.chat_name;
+		}
 	}, [chatid, setIsChatOpen, setOpenedChats]);
 
 	if (!currentChat) {

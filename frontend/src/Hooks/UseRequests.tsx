@@ -12,7 +12,7 @@ export function useRequests() {
 
 	const deletFetch = useCallback(async (pedido: string): Promise<boolean> => {
 		try {
-			const response = await fetch(`${host}/pedido`, {
+			const response = await fetch(`${host}/api/pedidos/`, {
 				method: "DELETE",
 				body: JSON.stringify({ pedido }),
 				headers: { "Content-Type": "application/json" },
@@ -27,13 +27,15 @@ export function useRequests() {
 	const putChatFetch = useCallback(
 		async (userId: number): Promise<boolean> => {
 			try {
-				const response = await fetch(`${host}/new_chat`, {
+				const response = await fetch(`${host}/api/chats/new_chat`, {
 					method: "PUT",
 					body: JSON.stringify({
 						users: [userId, user?.id],
 					}),
 					headers: { "Content-Type": "application/json" },
+					credentials: "include",
 				});
+				
 				return response.ok;
 			} catch (error) {
 				console.error("Erro ao criar chat:", error);
@@ -46,7 +48,7 @@ export function useRequests() {
 	const fetchUsers = useCallback(
 		async (userIds: string[]): Promise<User[]> => {
 			try {
-				const response = await fetch(`${host}/users`, {
+				const response = await fetch(`${host}/api/users/`, {
 					method: "POST",
 					body: JSON.stringify({ users: userIds }),
 					headers: { "Content-Type": "application/json" },

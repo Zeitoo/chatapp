@@ -1,11 +1,1 @@
-O requests deve ser opimizado, nao podem ser mandadas mais de 100 req de uma vez, ao inves disso o server deve processar tudo e responder de uma vez so.
-
-Antes de simplesmente criar uma chat baseado no cliente tem que primeiro verificar se relamente existe um pedido entre os clientes...
-
-REsolver porblemas d epossivel duplicacao de chats ....
-
-corrigir problemas nas queries de retornarem passwordhash, resolver no SQL mesmo
-
 Mais tarde na usesendmessage hook deve se apagar o objecto messages, e' desnecessario
-
-usuarios nao devem ter emails iguais
