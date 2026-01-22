@@ -8,7 +8,9 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ currentChat, onBack }: ChatHeaderProps) {
 	return (
-		<div className="flex chat-header gap-1 items-center h-16 shrink-0">
+		<div
+			style={{ backdropFilter: "blur(8px)" }}
+			className="flex chat-header gap-1 items-center h-16 shrink-0">
 			<button
 				onClick={onBack}
 				className="back-btn ml-3.5"

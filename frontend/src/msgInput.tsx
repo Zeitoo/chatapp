@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import styles from "./styles/placeholder.module.css";
 
 interface EditableBoxProps {
 	onAction: (value: string) => void;
@@ -47,20 +48,22 @@ export const EditableBox: React.FC<EditableBoxProps> = ({
 				ref={divRef}
 				contentEditable
 				suppressContentEditableWarning
-				className={`flex-1 outline-none w-full max-w-full overflow-y-auto max-h-32 break-words ${
+				className={`${
+					styles.placeholderVisible
+				} flex-1 outline-none w-full max-w-full overflow-y-auto max-h-32 break-words ${
 					!hasContent ? "placeholder-visible" : ""
 				}`}
 				onKeyDown={handleKeyDown}
 				onInput={handleInput}
 				data-placeholder={placeholder}
 				style={{
-                    translate: "-40px 0px",
+					translate: "-40px 0px",
 					minHeight: "1.2rem",
 					maxHeight: "8rem",
 					caretColor: "var(--color-blue-500)",
 					paddingRight: "0.5rem", // afasta conteúdo da scrollbar e do botão
 					boxSizing: "content-box",
-                    paddingLeft: "40px"
+					paddingLeft: "40px",
 				}}
 			/>
 
@@ -87,15 +90,6 @@ export const EditableBox: React.FC<EditableBoxProps> = ({
 					/>
 				</svg>
 			</button>
-
-			<style jsx>{`
-				.placeholder-visible:empty::before {
-					content: attr(data-placeholder);
-					color: #9ca3af;
-					font-style: italic;
-					pointer-events: none;
-				}
-			`}</style>
 		</div>
 	);
 };

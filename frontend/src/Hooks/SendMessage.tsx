@@ -7,6 +7,13 @@ export function useSendMessage() {
 
 	const sendMessage = (chat: Chat | undefined, content: string) => {
 		if (!chat || !user?.id) return Promise.reject("Dados insuficientes");
+
+		if (chat.tipo == "privado") {
+			if (typeof user.id !== "undefined") {
+				chat.participants.push(user);
+			}
+		}
+
 		ws.current?.send(
 			JSON.stringify({
 				titulo: "newMsg",

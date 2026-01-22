@@ -111,7 +111,7 @@ export function useSignUp() {
 			
 			// Redireciona após delay
 			setTimeout(() => {
-				navigate('/login');
+				navigate('/signin');
 			}, 2000);
 			
 			return true;

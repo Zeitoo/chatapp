@@ -18,7 +18,7 @@ function App() {
 		if (ws.current?.readyState === WebSocket.OPEN) return;
 
 		ws.current = new WebSocket(
-			host.replace("http", "ws") + `?userId=${id}`
+			host.replace("https", "wss") + `?userId=${id}`
 		);
 
 		ws.current.onopen = () => {

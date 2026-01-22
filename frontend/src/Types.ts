@@ -1,12 +1,12 @@
 // Types.ts
-export interface User {
+export interface User  {
 	id: number;
-	user_name: string;
-	email_address: string;
-	profile_img: number;
-	created_at: string;
-	pedidos?: string[];
-}
+	user_name?: string;
+	email_address?: string;
+	profile_img?: string;
+	created_at?: string;
+	pedidos?: string[][];
+};
 
 export interface Chat {
 	id: string;

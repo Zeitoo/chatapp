@@ -56,7 +56,7 @@ export default function SignUp() {
 			case 3:
 				return (
 					<Step3Form
-						onChange={""}
+						onChange={() => {}}
 						formData={formData}
 						apiError={apiError}
 						loading={loading}

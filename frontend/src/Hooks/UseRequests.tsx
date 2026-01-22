@@ -35,7 +35,7 @@ export function useRequests() {
 					headers: { "Content-Type": "application/json" },
 					credentials: "include",
 				});
-				
+
 				return response.ok;
 			} catch (error) {
 				console.error("Erro ao criar chat:", error);
@@ -46,7 +46,7 @@ export function useRequests() {
 	);
 
 	const fetchUsers = useCallback(
-		async (userIds: string[]): Promise<User[]> => {
+		async (userIds: string[]): Promise<User[] | { message: string }> => {
 			try {
 				const response = await fetch(`${host}/api/users/`, {
 					method: "POST",
@@ -64,6 +64,7 @@ export function useRequests() {
 
 	const updateUserPedidos = useCallback(
 		(userId: number, isRecebido: boolean) => {
+			isRecebido;
 			if (!user?.pedidos) return;
 
 			const pedidos = user.pedidos.filter(
@@ -140,12 +141,21 @@ export function useRequests() {
 
 		if (enviadosArray.length > 0) {
 			const data = await fetchUsers(enviadosArray);
-			if (!data.message) setEnviados(data);
+
+			if ("message" in data) {
+				return;
+			}
+
+			setEnviados(data);
 		}
 
 		if (recebidosArray.length > 0) {
 			const data = await fetchUsers(recebidosArray);
-			if (!data.message) setRecebidos(data);
+
+			if ("message" in data) {
+				return;
+			}
+			setRecebidos(data);
 		}
 	}, [user, fetchUsers]);
 

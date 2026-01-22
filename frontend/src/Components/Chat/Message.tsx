@@ -1,9 +1,9 @@
 // components/MessageItem.tsx
-import type { Msg, Participant } from "../../Types";
+import type { Msg, User } from "../../Types";
 
 interface MessageItemProps {
 	msg: Msg;
-	author?: Participant;
+	author?: User;
 	isMe: boolean;
 	isFirstMsg: boolean;
 }

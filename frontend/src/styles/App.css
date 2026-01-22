@@ -125,10 +125,6 @@ input.text {
 	background-color: #161717;
 }
 
-.chat-header {
-	backdrop-filter: blur(8px);
-}
-
 .chat-selector {
 	user-select: none;
 	cursor: pointer;

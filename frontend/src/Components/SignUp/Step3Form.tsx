@@ -3,7 +3,6 @@ import { Loader } from "../../loader";
 import type { SignUpStepProps } from "../../Types";
 
 export function Step3Form({
-	formData,
 	apiError,
 	loading,
 	onNext,

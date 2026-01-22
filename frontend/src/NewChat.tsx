@@ -66,7 +66,6 @@ export default function NewChat() {
 			},
 			credentials: "include",
 		}).then((res) => {
-			
 			if (res.ok) {
 				console.log("sucesso...");
 				if (!user?.pedidos) {
@@ -156,6 +155,7 @@ export default function NewChat() {
 
 			if (response.ok) {
 				const tempUser = structuredClone(user);
+				if (!tempUser?.pedidos) return;
 
 				tempUser?.pedidos.push(pedido.split(","));
 				setUser(tempUser);
