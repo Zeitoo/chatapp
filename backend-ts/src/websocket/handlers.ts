@@ -1,8 +1,14 @@
 import WebSocket from "ws";
 import { AuthenticatedSocket, WebSocketMessage, WebSocketUser } from "./types";
 import { putMessage } from "../models/models";
+import jwt from "jsonwebtoken";
 
 const users = new Map<string, WebSocketUser>();
+
+interface JwtPayloadWithId extends jwt.JwtPayload {
+	id: number;
+	user_name: string;
+}
 
 export async function handleWebSocketConnection(
 	ws: AuthenticatedSocket,
@@ -14,7 +20,6 @@ export async function handleWebSocketConnection(
 	const userId = params.get("userId");
 
 	if (!userId) {
-		console.log("Conexão WebSocket recusada: userId não fornecido");
 		return;
 	}
 
@@ -23,6 +28,16 @@ export async function handleWebSocketConnection(
 	ws.on("message", async (message: Buffer) => {
 		try {
 			const data: WebSocketMessage = JSON.parse(message.toString());
+			const access_token = data.access_token;
+
+			if (!process.env.AUTHORIZATION_SECRET || !access_token) return;
+
+			const dados = jwt.verify(
+				access_token,
+				process.env.AUTHORIZATION_SECRET
+			) as JwtPayloadWithId;
+
+			if (!dados || !dados.id) return console.log("Token rejected");
 
 			switch (data.titulo) {
 				case "newMsg":
@@ -30,7 +45,7 @@ export async function handleWebSocketConnection(
 					break;
 			}
 		} catch (error) {
-			console.error("Erro ao processar mensagem WebSocket:", error);
+			console.error("Erro ao processar mensagem WebSocket:");
 		}
 	});
 
@@ -94,6 +109,4 @@ async function handleNewMessage(
 			);
 		}
 	}
-
-	
 }

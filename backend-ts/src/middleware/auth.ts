@@ -1,30 +1,70 @@
 // src/middleware/auth.ts
-import { Request, Response, NextFunction } from 'express';
-import { getAccessToken } from '../models/models';
+import { Request, Response, NextFunction } from "express";
+import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
 
-export async function verifyAuth(req: Request, res: Response, next: NextFunction) {
-  const ip = req.socket.remoteAddress?.replace(/[:.]/g, '').replace('ffff', '') ?? '';
-  const accessToken = req.cookies?.access_token as string | undefined;
+interface JwtPayloadWithId extends jwt.JwtPayload {
+	id: number;
+	user_name: string;
+}
 
-  if (!accessToken) {
-    return res.status(401).json({ message: 'Login required...' });
-  }
+interface AuthRequest extends Request {
+	user?: {
+		id: number;
+		user_name: string;
+	};
+}
 
-  try {
-    const tokenData = await getAccessToken(accessToken);
+export async function verifyAuth(
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction
+) {
+	const authorization =
+		req.headers["authorization"] ?? req.headers.authorization;
+	const access_token =
+		typeof authorization === "string"
+			? authorization.split(" ")[1]
+			: undefined;
 
-    if (tokenData.length > 0 && tokenData[0].token.split('ty')[1] === ip) {
-      return next();
-    }
-  } catch (err) {
-    console.error('Erro na verificação de autenticação:', err);
-  }
+	console.log(req.headers);
+	if (!access_token || !process.env.AUTHORIZATION_SECRET) {
+		return res.status(401).json({ message: "Credenciais ausentes." });
+	}
+	console.log(access_token,`
+		
+		`, 1)
 
-  res.cookie('access_token', '', {
-    httpOnly: true,
-    maxAge: 1000 * 2,
-    secure: false,
-  });
+	try {
+		console.log(2)
+		const data = jwt.verify(
+			access_token,
+			process.env.AUTHORIZATION_SECRET
+		) as JwtPayloadWithId;
 
-  return res.status(401).json({ message: 'Login required...' });
+		if (!data || !data.id) {
+			return res
+				.status(403)
+				.json({ message: "Token inválido ou payload incompleto." });
+		}
+
+		console.log("verificado:   /", data);
+		req.user = data;
+
+		return next();
+	} catch (err) {
+		// usa explicitamente 'err' aqui — bom para logs / respostas mais informativas
+		if (err instanceof TokenExpiredError) {
+			return res.status(401).json({ message: "Access token expirado." });
+		}
+		if (err instanceof JsonWebTokenError) {
+			return res.status(403).json({
+				message: "Falha na verificação do token.",
+				details: err.message,
+			});
+		}
+		console.error("Erro ao verificar JWT:", err);
+		return res
+			.status(500)
+			.json({ message: "Erro interno ao verificar token." });
+	}
 }

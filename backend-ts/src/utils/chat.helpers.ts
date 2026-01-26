@@ -1,58 +1,67 @@
-// Corrija o caminho do import
+// chat.helpers.ts
 import {
-	getChats,
-	getChatMessages,
-	getChatParticipants,
-	getUser,
+	getChatsByUser,
+	getChatUsersByChatIds,
+	getMessagesByChatIds,
+	getUsersByIds,
 } from "../models/models";
 
-/**
- * Enriquece os chats com dados completos (mensagens, participantes, etc.)
- * @param userId - ID do usuário para filtrar chats
- * @returns Array de chats com todos os dados relacionados
- */
 export async function enrichChatsWithData(userId: number) {
-	const chats = await getChats(userId);
+	// 1. chats do user
+	const chats = await getChatsByUser(userId);
+	if (!chats.length) return [];
 
-	await Promise.all(
-		chats.map(async (chat: any) => {
-			const [messages, participants] = await Promise.all([
-				getChatMessages(chat.id),
-				getChatParticipants(chat.id),
-			]);
+	const chatIds = chats.map((c: any) => c.id);
 
-			chat.msgs = messages;
+	// 2. buscar tudo de uma vez
+	const [messages, chatUsers] = await Promise.all([
+		getMessagesByChatIds(chatIds),
+		getChatUsersByChatIds(chatIds),
+	]);
 
-			if (chat.tipo === "privado") {
-				const otherUser = participants.find(
-					(u: any) => u.user_id !== userId
-				);
+	// 3. user_ids únicos
+	const userIds = [...new Set(chatUsers.map((cu: any) => cu.user_id))];
 
-				if (!otherUser) return;
+	const users = await getUsersByIds(userIds);
 
-				const userData = await getUser(otherUser.user_id);
-				const user = userData[0];
-				if (!user) return;
+	/* ================= MAPS ================= */
 
-				chat.chat_name = user.user_name;
-				chat.profile_img = user.profile_img;
-				chat.participants = [user];
-				return;
-			}
+	const messagesByChat = new Map<string, any[]>();
+	for (const m of messages) {
+		const arr = messagesByChat.get(m.chat_id) ?? [];
+		arr.push(m);
+		messagesByChat.set(m.chat_id, arr);
+	}
 
-			const participantsData = await Promise.all(
-				participants.map(async (p: any) => {
-					const userData = await getUser(p.user_id);
-					const user = userData[0];
-					if (!user) return null;
-					delete user.password_hash;
-					return user;
-				})
+	const usersById = new Map<number, any>();
+	for (const u of users) usersById.set(u.id, u);
+
+	const participantsByChat = new Map<string, any[]>();
+	for (const cu of chatUsers) {
+		const arr = participantsByChat.get(cu.chat_id) ?? [];
+		const user = usersById.get(cu.user_id);
+		if (user) arr.push(user);
+		participantsByChat.set(cu.chat_id, arr);
+	}
+
+	/* ================= ENRICH ================= */
+
+	return chats.map((chat: any) => {
+		chat.msgs = messagesByChat.get(chat.id) ?? [];
+		chat.participants = participantsByChat.get(chat.id) ?? [];
+
+		if (chat.tipo === "privado") {
+			const otherUser = chat.participants.find(
+				(u: any) => u.id !== userId
 			);
 
-			chat.participants = participantsData.filter(Boolean);
-		})
-	);
+			if (otherUser) {
+				chat.chat_name = otherUser.user_name;
+				chat.profile_img = otherUser.profile_img ?? null;
+				chat.participants = [otherUser];
+			}
+		}
 
-	return chats;
+		return chat;
+	});
 }

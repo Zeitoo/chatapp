@@ -143,12 +143,15 @@ CREATE TABLE users (
   profile_img VARCHAR(255)
 );
 
--- Tokens de acesso
-CREATE TABLE tokens (
+
+CREATE TABLE refresh_tokens (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  token VARCHAR(255) UNIQUE,
-  user_id INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  user_id INT NOT NULL,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  revoked BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Chats
@@ -185,18 +188,15 @@ CREATE TABLE pedidos (
 
 ## **Autenticação**
 ### **Sistema de Tokens**
-- Token gerado: `[10_caracteres_aleatórios]ty[IP_limpo]`
+======= Refresh token: `60 caracteres aleatorios gerados por crypto,radomBytes()`
 - Armazenado em cookie: `access_token`
-- Validade: 10 horas
-- Verificado por IP para segurança
+- Validade: 7dias
+======accces_token: Um Json Web Token com duracao de 30 minutos
 
 ### **Middleware `verifyAuth`**
 ```typescript
 // Protege rotas que requerem autenticação
-app.get('/status', verifyAuth, UserController.getStatus);
-```
 
----
 
 ## **Configuração**
 ### **Arquivo `.env`**
@@ -318,12 +318,11 @@ curl -X PUT http://localhost:3000/api/chats/new_msg \
 ## **Fluxo do Aplicativo**
 ### **Fluxo Completo de Usuário Novo**
 1. **Cadastro** → `POST /api/auth/signup`
-2. **Login** → `POST /api/auth/login` (recebe cookie)
-3. **Verificar status** → `GET /api/users/status` (vazio inicialmente)
-4. **Buscar amigos** → `GET /api/users/search/:nome`
-5. **Enviar pedido de amizade** → *(via WebSocket - não tem rota HTTP)*
-6. **Aceitar pedido** → `PUT /api/chats/new_chat` + `DELETE /api/pedidos`
-7. **Iniciar conversa** → `PUT /api/chats/new_msg` (HTTP) ou WebSocket
+2. **Login** → `POST /api/auth/login` (recebe os tokens)
+3. **Buscar amigos** → `GET /api/users/search/:nome`
+4. **Enviar pedido de amizade** → *(via WebSocket - não tem rota HTTP)*
+5. **Aceitar pedido** → `PUT /api/chats/new_chat` + `DELETE /api/pedidos`
+6. **Iniciar conversa** → `PUT /api/chats/new_msg` (HTTP) ou WebSocket
 
 ### **Fluxo de Mensagens**
 ```
@@ -340,23 +339,6 @@ Servidor: Envia via WS para Usuário B
 Usuário B: Recebe mensagem em tempo real
 ```
 
----
-
-## **Dicas para Manutenção Futura**
-
-### **1. Se Esquecer Como Rodar:**
-```bash
-# Sempre comece por aqui
-npm install
-cp .env.example .env  # (se tiver)
-# Edite o .env com suas credenciais
-npm run dev
-```
-
-### **2. Problemas Comuns:**
-- **Porta em uso:** `lsof -ti:3000 | xargs kill -9`
-- **Erro de conexão DB:** Verifique `.env` e se o MySQL está rodando
-- **Erros TypeScript:** `npx tsc --noEmit` para ver erros de tipo
 
 ### **3. Para Adicionar Nova Rota:**
 1. Crie função no controller
@@ -375,21 +357,16 @@ wscat -c "ws://localhost:3000?userId=1"
 # Verificar saúde da API
 curl http://localhost:3000/
 ```
-
 ---
 
 ## **Considerações de Segurança**
-1. **Senhas:** Hash SHA256 (melhorar para bcrypt futuramente)
-2. **Tokens:** Vinculados ao IP do usuário
 3. **CORS:** Configurado apenas para origem específica
 4. **Cookies:** HttpOnly para prevenir XSS
 
 ---
 
 ## **Melhorias Futuras**
-1. [ ] Implementar bcrypt para senhas
 2. [ ] Adicionar rate limiting
-3. [ ] Implementar refresh tokens
 4. [ ] Adicionar logging estruturado
 5. [ ] Criar documentação Swagger/OpenAPI
 6. [ ] Adicionar testes unitários e de integração

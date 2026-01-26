@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 import {
 	getUsersByNameS,
 	getUsers,
-	getUsersByToken,
-	getPedidos,
 } from "../models/models";
+import { User } from "../Types";
 
 export class UserController {
 	static async searchByName(req: Request, res: Response) {
@@ -41,9 +40,10 @@ export class UserController {
 
 	static async getStatus(req: Request, res: Response) {
 		const accessToken = req.cookies?.access_token as string;
-		const user = await getUsersByToken(accessToken);
 
-		if (!user || user.length === 0 || !user[0].id) {
+		console.log(accessToken);
+		/*if (!user || user.length === 0 || !user[0].id) {
+			console.log(req.headers);
 			return res.status(401).json({ message: "Não autorizado" });
 		}
 
@@ -56,7 +56,14 @@ export class UserController {
 			if (pedido.includes(String(user[0].id))) pedidos.push(pedido);
 		}
 
-		user[0].pedidos = pedidos;
+		user[0].pedidos = pedidos;*/
+		const user: User = {
+			user_name: "user889",
+			id: 889,
+			profile_img: "12",
+			email: "user889@mail.com",
+			criado_em: "2",
+		};
 		return res.status(200).json(user);
 	}
 }

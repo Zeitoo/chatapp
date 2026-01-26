@@ -4,26 +4,29 @@ import {
 	putMessage,
 	putNewChat,
 	deletePedido,
-	getPedidos,
 	getUsersIdByToken,
 	getPedido,
 	getPrivateChatBetweenUsers,
 } from "../models/models";
 import { generateId } from "../utils/token";
 
+interface AuthRequest extends Request {
+	user?: {
+		id: number;
+		user_name: string;
+	};
+}
+
 export class ChatController {
-	static async getChats(req: Request, res: Response) {
-		const accessToken = req.cookies?.access_token as string;
-
-		if (accessToken) {
-			const { user_id } = await getUsersIdByToken(accessToken);
-
-			if (user_id) {
-				const chatsWithMsgs = await enrichChatsWithData(user_id);
-				return res.status(200).json(chatsWithMsgs);
-			}
-
-			return res.json({ message: "failed" });
+	static async getChats(
+		req: AuthRequest,
+		res: Response
+	): Promise<Response | undefined> {
+		console.log("olo", req.user);
+		const user = req.user;
+		if (user) {
+			const chatsWithMsgs = await enrichChatsWithData(user.id);
+			return res.status(200).json(chatsWithMsgs);
 		}
 	}
 

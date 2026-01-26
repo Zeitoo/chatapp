@@ -1,9 +1,9 @@
 // models.ts
-import type { Pool, RowDataPacket } from "mysql2/promise";
-
+import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../config/config_db";
-
 import crypto from "crypto";
+import { RefreshTokenWithUser } from "../Types";
+import { hashPassword } from "../utils/crypto";
 
 type AnyRow = Record<string, any>;
 
@@ -33,16 +33,6 @@ export interface Chat {
 	profile_img: number;
 }
 
-function fecharPool() {
-	setTimeout(() => {
-		// pool.end();
-	}, 20000);
-}
-
-function hashPassword(password: string) {
-	return crypto.createHash("sha256").update(password).digest("hex");
-}
-
 /* Helpers */
 async function query<T = RowDataPacket[]>(
 	sql: string,
@@ -60,7 +50,6 @@ export const getChats = async (userId: number): Promise<Chat[]> => {
 		[userId]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -72,7 +61,6 @@ export const getChatParticipants = async (
 		[chatId]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -82,7 +70,6 @@ export const getChatMessages = async (chatId: string): Promise<Message[]> => {
 		[chatId]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -104,7 +91,6 @@ export const getPrivateChatBetweenUsers = async (
 		[userId1, userId2]
 	);
 
-	fecharPool();
 	return rows.length > 0 ? rows[0] : null;
 };
 
@@ -113,18 +99,6 @@ export const getUser = async (userId: number): Promise<User[]> => {
 		userId,
 	]);
 
-	fecharPool();
-	return rows;
-};
-
-export const getUsersByToken = async (token: string): Promise<User[]> => {
-	const rows = await query<User[]>(
-		`SELECT u.* FROM users u
-     WHERE u.id = (SELECT user_id FROM tokens WHERE token = ?);`,
-		[token]
-	);
-
-	fecharPool();
 	return rows;
 };
 
@@ -136,7 +110,6 @@ export const getUsersIdByToken = async (
 		[token]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -146,7 +119,6 @@ export const getUsersByEmail = async (email: string): Promise<User[]> => {
 		[email]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -156,7 +128,6 @@ export const getAccessToken = async (token: string): Promise<AnyRow[]> => {
 		[token]
 	);
 
-	fecharPool();
 	return rows;
 };
 
@@ -181,7 +152,6 @@ export const getUsersByNameS = async (
 	);
 
 	if (!rows || rows.length === 0) return false;
-	console.log(typeof rows);
 	return rows;
 };
 
@@ -228,8 +198,74 @@ export const putAccessToken = async (
 		[token, userId]
 	);
 
-	fecharPool();
 	return rows;
+};
+
+export const putRefreshToken = async (token_hash: string, userId: number) => {
+	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+	const connection = await pool.getConnection();
+
+	await connection.beginTransaction();
+
+	try {
+		// 1. Revoga todas as refresh tokens do usuário
+		await query(
+			`UPDATE refresh_tokens
+     SET revoked = true
+     WHERE user_id = ? AND revoked = false`,
+			[userId]
+		);
+
+		// 2. Insere o novo refresh token
+		await query(
+			`INSERT INTO refresh_tokens (user_id, token_hash, revoked, expires_at)
+     VALUES (?, ?, false, ?)`,
+			[userId, token_hash, expiresAt]
+		);
+
+		await connection.commit();
+
+		return true;
+	} catch (err) {
+		await connection.rollback();
+		return false;
+		throw err;
+	}
+};
+
+export const getRefreshToken = async (refreshToken: string) => {
+	const refreshTokenHash = crypto
+		.createHash("sha256")
+		.update(refreshToken)
+		.digest("hex");
+
+	const [rows] = await pool.query<RefreshTokenWithUser[]>(
+		`
+    SELECT
+      rt.id           AS refresh_id,
+      rt.user_id,
+      rt.token_hash,
+      rt.revoked,
+      rt.created_at   AS refresh_created_at,
+      rt.expires_at,
+
+      u.user_name,
+      u.email_address,
+      u.profile_img,
+      u.created_at    AS user_created_at
+    FROM refresh_tokens rt
+    INNER JOIN users u ON u.id = rt.user_id
+    WHERE rt.token_hash = ?
+  
+      AND rt.expires_at > NOW()
+    `,
+		[refreshTokenHash]
+	);
+
+	`    AND rt.revoked = false`;
+
+	return rows.length ? rows[0] : null;
 };
 
 export const putUser = async (user: {
@@ -332,4 +368,55 @@ export const putNewChat = async (
 	} else {
 		return false;
 	}
+};
+
+/* ================= USERS ================= */
+
+export const getUsersByIds = async (userIds: number[]) => {
+	if (!userIds.length) return [];
+
+	const placeholders = userIds.map(() => "?").join(",");
+	return query(
+		`SELECT id, user_name, profile_img
+     FROM users
+     WHERE id IN (${placeholders});`,
+		userIds
+	);
+};
+
+/* ================= CHATS ================= */
+
+export const getChatsByUser = async (userId: number) => {
+	return query(
+		`SELECT c.*
+     FROM chats c
+     WHERE c.id IN (
+       SELECT chat_id FROM chat_users WHERE user_id = ?
+     );`,
+		[userId]
+	);
+};
+
+export const getChatUsersByChatIds = async (chatIds: string[]) => {
+	if (!chatIds.length) return [];
+
+	const placeholders = chatIds.map(() => "?").join(",");
+	return query(
+		`SELECT chat_id, user_id
+     FROM chat_users
+     WHERE chat_id IN (${placeholders});`,
+		chatIds
+	);
+};
+
+/* ================= MESSAGES ================= */
+
+export const getMessagesByChatIds = async (chatIds: string[]) => {
+	if (!chatIds.length) return [];
+
+	const placeholders = chatIds.map(() => "?").join(",");
+	return query(
+		`SELECT * FROM messages WHERE chat_id IN (${placeholders}) ORDER BY enviado_em ASC;`,
+		chatIds
+	);
 };

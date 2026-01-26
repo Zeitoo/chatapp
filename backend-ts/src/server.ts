@@ -1,21 +1,13 @@
-import https from "https";
+import http from "http";
 import { createApp } from "./app";
 import { setupWebSocket } from "./websocket/server";
 import { config } from "./config/env";
-import fs from "fs";
-import path from "path";
+
 
 export function startServer() {
 	const app = createApp();
 
-	const certPath = path.resolve(__dirname, "../../certs");
-
-	const options = {
-		key: fs.readFileSync(path.join(certPath, "cert.key")),
-		cert: fs.readFileSync(path.join(certPath, "cert.crt")),
-	};
-
-	const server = https.createServer(options, app);
+	const server = http.createServer(app);
 
 	setupWebSocket(server);
 
