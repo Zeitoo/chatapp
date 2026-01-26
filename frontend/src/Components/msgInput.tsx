@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import styles from "./styles/placeholder.module.css";
+import styles from "../styles/placeholder.module.css";
 
 interface EditableBoxProps {
 	onAction: (value: string) => void;
@@ -50,7 +50,7 @@ export const EditableBox: React.FC<EditableBoxProps> = ({
 				suppressContentEditableWarning
 				className={`${
 					styles.placeholderVisible
-				} flex-1 outline-none w-full max-w-full overflow-y-auto max-h-32 break-words ${
+				} flex-1 outline-none w-full max-w-full overflow-y-auto max-h-32 wrap-break-words ${
 					!hasContent ? "placeholder-visible" : ""
 				}`}
 				onKeyDown={handleKeyDown}

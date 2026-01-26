@@ -6,17 +6,17 @@ import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import Direct from "./Direct.tsx";
 import Chat from "./Chat.tsx";
-import Live from "./livestream.tsx";
 import { Requests } from "./Requests.tsx";
 import NewChat from "./NewChat.tsx";
-import { AppProvider } from "./AppContextProvider.tsx";
+import { AppProvider } from "./Contexts/AppContextProvider.tsx";
 import {
 	createBrowserRouter,
 	createRoutesFromElements,
 	Route,
 	RouterProvider,
 } from "react-router-dom";
-import { ChatProvider } from "./chatContextProvider.tsx";
+import { ChatProvider } from "./Contexts/chatContextProvider.tsx";
+import { AuthProvider } from "./Contexts/AuthContext.tsx";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -31,12 +31,10 @@ const router = createBrowserRouter(
 				path="signin"
 				element={<SignIn />}
 			/>
-
 			<Route
-				path="live"
-				element={<Live />}
+				path="login"
+				element={<SignIn />}
 			/>
-
 			<Route
 				path="direct/"
 				element={<Direct />}>
@@ -59,15 +57,17 @@ const router = createBrowserRouter(
 			/>
 		</Route>
 	)
-);
 
+);
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
-		<AppProvider>
+		<AuthProvider>
+			<AppProvider>
 			<ChatProvider>
 				<RouterProvider router={router} />
 			</ChatProvider>
 		</AppProvider>
+		</AuthProvider>
 	</StrictMode>
 );

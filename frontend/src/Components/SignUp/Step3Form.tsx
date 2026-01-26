@@ -1,12 +1,8 @@
 // components/signup/Step3Form.tsx
-import { Loader } from "../../loader";
+import { Loader } from "../loader";
 import type { SignUpStepProps } from "../../Types";
 
-export function Step3Form({
-	apiError,
-	loading,
-	onNext,
-}: SignUpStepProps) {
+export function Step3Form({ apiError, loading, onNext }: SignUpStepProps) {
 	return (
 		<div className="px-5">
 			{!apiError ? (

@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { appContext } from "./appContext";
-import type { User } from "./Types";
-
+import type { User } from "../Types";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);

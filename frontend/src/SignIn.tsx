@@ -2,9 +2,12 @@ import logo from "../public/vite.svg";
 import { useNavigate, useOutletContext, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";
+import { useAuth } from "./Contexts/AuthContext";
+import { api } from "./auth/api";
 
 function SignIn() {
 	const navigate = useNavigate();
+	const { setAccessToken } = useAuth();
 	const setLogged =
 		useOutletContext<React.Dispatch<React.SetStateAction<boolean>>>();
 	const [hidePassword, setHidePassword] = useState<boolean>(true);
@@ -19,23 +22,24 @@ function SignIn() {
 	const host = import.meta.env.VITE_API_URL;
 
 	const mandarDados = async (dados: string) => {
-		const response = await fetch(`${host}/api/auth/login/`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: dados,
-			credentials: "include",
+		console.log("Mandando dados...");
+		const response = await api.post(`${host}/api/auth/login/`, dados, {
+			headers: {
+				"Content-Type": "application/json",
+			},
 		});
 
+		console.log("From Sign in", response);
+
 		if (response.status === 200) {
-			const data = await response.json();
+			const data = response.data;
+			setAccessToken(data.access_token);
 
 			setUser(data.user);
-
 			setTimeout(() => {
 				setLogged(true);
-			}, 1000);
-
-			navigate("/");
+			}, 500);
+			navigate("/direct");
 
 			return;
 		} else {

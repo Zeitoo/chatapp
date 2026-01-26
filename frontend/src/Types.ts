@@ -1,12 +1,41 @@
 // Types.ts
-export interface User  {
+
+export interface LoginCredentials {
+	email: string;
+	password: string;
+}
+
+export interface LoginResponse {
+	accessToken: string;
+	user: User;
+}
+
+export interface RefreshResponse {
+	accessToken: string;
+}
+
+export interface AuthContextType {
+	user: User | null;
+	login: (email: string, password: string) => Promise<LoginResult>;
+	logout: () => Promise<void>;
+	loading: boolean;
+	getAccessToken: () => string | null;
+	setAccessToken: (token: string | null) => void;
+}
+
+export interface LoginResult {
+	success: boolean;
+	error?: string;
+}
+
+export interface User {
 	id: number;
 	user_name?: string;
 	email_address?: string;
 	profile_img?: string;
 	created_at?: string;
 	pedidos?: string[][];
-};
+}
 
 export interface Chat {
 	id: string;

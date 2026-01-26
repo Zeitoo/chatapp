@@ -1,28 +1,40 @@
 import "./styles/App.css";
-import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";
 import { useChat } from "./Hooks/useChat";
+import { useAuth } from "./Contexts/AuthContext";
+import { api } from "./auth/api";
 
 function App() {
-	const navigate = useNavigate();
+	const { setAccessToken, getAccessToken } = useAuth();
+	const [logged, setLogged] = useState<boolean | null>(null);
 	const route = useLocation();
 	const reconnectInterval = useRef<null | number>(null);
-	const [logged, setLogged] = useState<boolean>(false);
-
+	const navigate = useNavigate();
 	const { Chats, setChats } = useChat();
-	const { ws, setUser } = useUser();
+	const { ws, setUser, user } = useUser();
 	const host = import.meta.env.VITE_API_URL;
+	const isConnecting = useRef(false);
 
 	const connectTowebsocket = (id: number) => {
-		if (ws.current?.readyState === WebSocket.OPEN) return;
+		if (isConnecting.current) return;
 
-		ws.current = new WebSocket(
-			host.replace("https", "wss") + `?userId=${id}`
-		);
+		// Fecha qualquer socket antigo
+		if (ws.current) {
+			ws.current.onclose = null;
+			ws.current.close();
+			ws.current = null;
+		}
+
+		isConnecting.current = true;
+
+		const wsUrl = host.replace(/^http/, "ws") + `?userId=${id}`;
+		ws.current = new WebSocket(wsUrl);
 
 		ws.current.onopen = () => {
 			console.log("websocket conectado");
+			isConnecting.current = false;
 
 			if (reconnectInterval.current) {
 				clearInterval(reconnectInterval.current);
@@ -32,23 +44,16 @@ function App() {
 
 		ws.current.onmessage = (message) => {
 			const data = JSON.parse(message.data);
-			console.log(data)
 			if (data.titulo === "newMsg") {
 				delete data.titulo;
-				const tempChats = [];
-				let tempChat;
-				if (!Chats.current) return;
-				//Procurar o chat a ser editado
-				for (let chat of Chats?.current) {
-					if (chat.id === data.chat_id) {
-						tempChat = chat;
 
-						tempChat?.msgs.push(data);
-						tempChats.push(tempChat);
-					} else {
-						tempChats.push(chat);
-					}
-				}
+				if (!Chats.current) return;
+
+				const tempChats = Chats.current.map((chat) =>
+					chat.id === data.chat_id
+						? { ...chat, msgs: [...chat.msgs, data] }
+						: chat
+				);
 
 				setChats(tempChats);
 			}
@@ -56,41 +61,66 @@ function App() {
 
 		ws.current.onclose = () => {
 			console.log("conexao caiu");
+			isConnecting.current = false;
 
 			if (reconnectInterval.current) return;
 
-			reconnectInterval.current = setInterval(() => {
+			reconnectInterval.current = window.setInterval(() => {
 				console.log("tentando reconectar...");
 				connectTowebsocket(id);
 			}, 3000);
 		};
+
+		ws.current.onerror = () => {
+			ws.current?.close();
+		};
+	};
+
+	const mainRequest = async () => {
+		console.log("main request");
+		try {
+			const response = await api.get(`${host}/api/auth/refresh/`);
+			if (response.status === 200) {
+				const data = response.data;
+				setAccessToken(data.access_token);
+				setUser(data.user);
+				connectTowebsocket(data.user.id);
+
+				if (route.pathname.length < 2) navigate("direct");
+			}
+		} catch (error) {
+			console.log("Erro ao fazer a requisição:", error.response);
+			navigate("login");
+			// Aqui você pode decidir o que fazer em caso de erro, ex: mostrar mensagem ou navegar para login
+		}
 	};
 
 	useEffect(() => {
-		if (!route.pathname.includes("sign") || logged) {
-			fetch(`${host}/api/users/status/`, { credentials: "include" }).then(
-				(res) => {
-					if (res.status !== 200) {
-						navigate("/signin");
-					} else {
-						res.json().then((data) => {
-							connectTowebsocket(data[0].id);
-							setUser(data[0]);
-						});
-
-						if (route.pathname === "/") {
-							navigate("/direct");
-						}
-					}
-				}
-			);
+		if (
+			!["signin", "login", "signup"].includes(
+				route.pathname.replace("/", "")
+			) &&
+			!getAccessToken()
+		) {
+			mainRequest();
 		}
 
 		return () => {
-			if (ws.current) ws.current.close();
-			if (reconnectInterval.current)
+			if (reconnectInterval.current) {
 				clearInterval(reconnectInterval.current);
+				reconnectInterval.current = null;
+			}
+
+			if (ws.current) {
+				ws.current.close();
+				ws.current = null;
+			}
 		};
+	}, []);
+
+	useEffect(() => {
+		if (!user?.id) return;
+		connectTowebsocket(user.id);
 	}, [logged]);
 
 	return (

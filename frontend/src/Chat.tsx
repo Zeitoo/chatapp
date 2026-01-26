@@ -9,7 +9,7 @@ import type { ChatContextType } from "./Types";
 import { ChatHeader } from "./Components/Chat/Header";
 import { MessageList } from "./Components/Chat/Messages";
 import { ChatNotFound } from "./Components/Chat/ChatNotFound";
-import { EditableBox } from "./msgInput";
+import { EditableBox } from "./Components/msgInput";
 
 export default function Chat() {
 	const { chats, setOpenedChats } = useOutletContext<ChatContextType>();

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useUser } from "./Hooks/useUser";
 import { useChat } from "./Hooks/useChat";
+import { api } from "./auth/api";
 
 function Direct() {
 	const route = useLocation();
@@ -24,6 +25,19 @@ function Direct() {
 		navigate(`/direct/${chatId}`);
 	}
 
+	const chatsRequest = async () => {
+		const response = await api.post(`${host}/api/chats/`);
+
+		if (response.status === 200) {
+			const dados = [];
+
+			for (let chat of response.data) {
+				dados.push(chat);
+			}
+			setChats(dados);
+		}
+	};
+
 	useEffect(() => {
 		if (!openedChat) {
 			setOpenedChats(null);
@@ -35,19 +49,7 @@ function Direct() {
 				user.pedidos.length > 0 ? setHasPedidos(true) : "";
 			}
 
-			fetch(`${host}/api/chats/`, {
-				method: "POST",
-				credentials: "include",
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					const dados = [];
-
-					for (let chat of data) {
-						dados.push(chat);
-					}
-					setChats(dados);
-				});
+			chatsRequest();
 		}, 500);
 	}, [user, openedChat]);
 
