@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
 import { enrichChatsWithData } from "../utils/chat.helpers";
 import {
-	putMessage,
 	putNewChat,
 	deletePedido,
-	getUsersIdByToken,
 	getPedido,
 	getPrivateChatBetweenUsers,
 } from "../models/models";
@@ -22,7 +20,6 @@ export class ChatController {
 		req: AuthRequest,
 		res: Response
 	): Promise<Response | undefined> {
-		console.log("olo", req.user);
 		const user = req.user;
 		if (user) {
 			const chatsWithMsgs = await enrichChatsWithData(user.id);
@@ -30,47 +27,40 @@ export class ChatController {
 		}
 	}
 
-	static async newMessage(req: Request, res: Response) {
-		const { chatId, conteudo, userId } = req.body;
-
-		await putMessage({ chatId, conteudo, userId });
-		return res.status(200).send("done");
-	}
-
-	static async newChat(req: Request, res: Response) {
-		const accessToken = req.cookies?.access_token as string;
+	static async newChat(req: AuthRequest, res: Response) {
+		const user = req.user;
 		const users: number[] = req.body.users;
-		const { user_id } = await getUsersIdByToken(accessToken);
-		if (!users.includes(user_id)) return;
+
+		if (!user || !Array.isArray(users)) {
+			return res.status(400).json({ message: "Dados inválidos" });
+		}
+
+		if (!users.includes(user.id)) {
+			return res.status(403).json({ message: "Acesso negado" });
+		}
+
 		const pedido = users.join(",");
 
-		const answer = await getPedido(pedido);
-		if (!answer) return;
-		const chatAllreadyExixts = await getPrivateChatBetweenUsers(
-			users[0],
-			users[1]
-		);
-
-		if (chatAllreadyExixts) return;
-
-		const response = await putNewChat(generateId(), users);
-
-		if (!response) {
-			return res.status(400).json({
-				message: "Houve um erro na criacao do chat...",
-			});
+		const pedidoExiste = await getPedido(pedido);
+		if (!pedidoExiste) {
+			return res.status(404).json({ message: "Pedido não encontrado" });
 		}
 
-		const deleted = await deletePedido(pedido);
+		const chatExiste = await getPrivateChatBetweenUsers(users[0], users[1]);
 
-		if (deleted) {
-			return res.status(200).json({
-				message: "Chat criado com sucesso",
-			});
+		if (chatExiste) {
+			return res.status(409).json({ message: "Chat já existe" });
 		}
 
-		return res.status(400).json({
-			message: "Houve um erro na criacao do chat...",
+		const criado = await putNewChat(generateId(), users);
+		if (!criado) {
+			return res.status(500).json({ message: "Erro ao criar chat" });
+		}
+
+		await deletePedido(pedido);
+
+		return res.status(201).json({
+			message: "Chat criado com sucesso",
 		});
 	}
 }

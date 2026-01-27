@@ -9,10 +9,11 @@ export interface AuthRequest extends Request {
 export interface User {
 	id: number;
 	user_name: string;
-	email: string;
+	email_address: string;
 	profile_img?: string;
 	criado_em: string;
 	password_hash?: string;
+	pedidos?: string[][];
 }
 
 export interface UserToken {

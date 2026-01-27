@@ -37,7 +37,7 @@ export async function handleWebSocketConnection(
 				process.env.AUTHORIZATION_SECRET
 			) as JwtPayloadWithId;
 
-			if (!dados || !dados.id) return console.log("Token rejected");
+			if (!dados || !dados.id) return
 
 			switch (data.titulo) {
 				case "newMsg":

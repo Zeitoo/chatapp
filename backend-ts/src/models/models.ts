@@ -346,28 +346,38 @@ export const deletePedido = async (pedido: string): Promise<boolean> => {
 };
 
 export const putNewChat = async (
-	chatId: string,
-	users: number[]
+  chatId: string,
+  users: number[]
 ): Promise<boolean> => {
-	const [createChat] = (await pool.query(
-		`INSERT INTO chats (id, tipo) VALUES (?, "privado");`,
-		[chatId]
-	)) as any;
+  const conn = await pool.getConnection();
 
-	if (createChat.affectedRows > 0) {
-		for (const user of users) {
-			const [createChatUsers] = (await pool.query(
-				`INSERT INTO chat_users (chat_id, user_id) VALUES (?, ?);`,
-				[chatId, user]
-			)) as any;
-			if (createChatUsers.affectedRows < 1) {
-				return false;
-			}
-		}
-		return true;
-	} else {
-		return false;
-	}
+  try {
+    await conn.beginTransaction();
+
+    const [chat] = await conn.query(
+      `INSERT INTO chats (id, tipo) VALUES (?, 'privado');`,
+      [chatId]
+    ) as any;
+
+    if (chat.affectedRows < 1) throw new Error("Chat não criado");
+
+    for (const userId of users) {
+      const [cu] = await conn.query(
+        `INSERT INTO chat_users (chat_id, user_id) VALUES (?, ?);`,
+        [chatId, userId]
+      ) as any;
+
+      if (cu.affectedRows < 1) throw new Error("Falha ao inserir usuário");
+    }
+
+    await conn.commit();
+    return true;
+  } catch (err) {
+    await conn.rollback();
+    return false;
+  } finally {
+    conn.release();
+  }
 };
 
 /* ================= USERS ================= */

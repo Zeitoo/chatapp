@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {
+	getPedidos,
 	getRefreshToken,
 	getUsersByEmail,
 	putRefreshToken,
@@ -8,6 +9,7 @@ import {
 import { comparePassword, hashPassword } from "../utils/crypto";
 import { generatAccessToken, generateRefreshToken } from "../utils/token";
 import crypto from "crypto";
+import { User } from "../Types";
 
 export class AuthController {
 	static async login(req: Request, res: Response) {
@@ -22,7 +24,6 @@ export class AuthController {
 		}
 
 		const user = users[0];
-		console.log(user);
 		// Verifica se o usuário tem password_hash e se a senha está correta
 		if (
 			!user.password_hash ||
@@ -81,6 +82,7 @@ export class AuthController {
 	}
 
 	static async refresh(req: Request, res: Response) {
+		const pedidos = [];
 		const refresh_token = req.cookies.refresh_token;
 		if (!refresh_token)
 			return res
@@ -97,13 +99,21 @@ export class AuthController {
 			});
 		}
 
-		const user = {
+		const user: User = {
 			id: response.user_id,
 			user_name: response.user_name,
-			profile_img: response.profile_img,
+			profile_img: String(response.profile_img),
 			email_address: response.email_address,
+			criado_em: "",
 		};
 
+		const pedidosReq = await getPedidos(user.id);
+
+		for (let pedido of pedidosReq) {
+			pedidos.push(pedido.fromto.split(","));
+		}
+
+		user.pedidos = pedidos;
 		const refreshToken = generateRefreshToken();
 
 		const refreshTokenHash = crypto

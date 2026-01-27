@@ -26,16 +26,11 @@ export async function verifyAuth(
 			? authorization.split(" ")[1]
 			: undefined;
 
-	console.log(req.headers);
+	console.log("Verificando....:  /   ", req.headers);
 	if (!access_token || !process.env.AUTHORIZATION_SECRET) {
 		return res.status(401).json({ message: "Credenciais ausentes." });
 	}
-	console.log(access_token,`
-		
-		`, 1)
-
 	try {
-		console.log(2)
 		const data = jwt.verify(
 			access_token,
 			process.env.AUTHORIZATION_SECRET
@@ -46,8 +41,6 @@ export async function verifyAuth(
 				.status(403)
 				.json({ message: "Token inválido ou payload incompleto." });
 		}
-
-		console.log("verificado:   /", data);
 		req.user = data;
 
 		return next();

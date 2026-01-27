@@ -6,7 +6,6 @@ import { verifyAuth } from '../middleware';
 const router = Router();
 
 router.post('/',verifyAuth ,ChatController.getChats);
-router.put('/new_msg', ChatController.newMessage);
-router.put('/new_chat' ,ChatController.newChat);
+router.put('/new_chat' ,verifyAuth,ChatController.newChat);
 
 export default router;

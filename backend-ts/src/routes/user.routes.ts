@@ -5,8 +5,7 @@ import { verifyAuth } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/search/:user_name', UserController.searchByName);
+router.get('/search/:user_name', verifyAuth ,UserController.searchByName);
 router.post('/', UserController.getUsersByIds);
-router.get('/status', verifyAuth, UserController.getStatus);
 
 export default router;
