@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import type { User } from "../Types";
 import { useUser } from "./useUser";
+import { api } from "../auth/api";
 
 const host = import.meta.env.VITE_API_URL;
 
@@ -12,12 +13,11 @@ export function useRequests() {
 
 	const deletFetch = useCallback(async (pedido: string): Promise<boolean> => {
 		try {
-			const response = await fetch(`${host}/api/pedidos/`, {
-				method: "DELETE",
-				body: JSON.stringify({ pedido }),
-				headers: { "Content-Type": "application/json" },
+			const response = await api.delete(`${host}/api/pedidos/`, {
+				data: {pedido},
 			});
-			return response.ok;
+
+			return response.status === 200;
 		} catch (error) {
 			console.error("Erro ao deletar pedido:", error);
 			return false;
@@ -27,16 +27,19 @@ export function useRequests() {
 	const putChatFetch = useCallback(
 		async (userId: number): Promise<boolean> => {
 			try {
-				const response = await fetch(`${host}/api/chats/new_chat`, {
-					method: "PUT",
-					body: JSON.stringify({
+				const response = await api.put(
+					`${host}/api/chats/new_chat`,
+					JSON.stringify({
 						users: [userId, user?.id],
 					}),
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-				});
+					{
+						headers: {
+							"Content-Type": "application/json",
+						},
+					}
+				);
 
-				return response.ok;
+				return response.status === 200;
 			} catch (error) {
 				console.error("Erro ao criar chat:", error);
 				return false;
@@ -46,14 +49,13 @@ export function useRequests() {
 	);
 
 	const fetchUsers = useCallback(
-		async (userIds: string[]): Promise<User[] | { message: string }> => {
+		async (userIds: string[]): Promise<User[]> => {
 			try {
-				const response = await fetch(`${host}/api/users/`, {
-					method: "POST",
-					body: JSON.stringify({ users: userIds }),
-					headers: { "Content-Type": "application/json" },
+				const response = await api.post<User[]>(`${host}/api/users`, {
+					users: userIds,
 				});
-				return await response.json();
+
+				return response.data;
 			} catch (error) {
 				console.error("Erro ao buscar usuários:", error);
 				return [];

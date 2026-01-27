@@ -11,6 +11,7 @@ interface User {
 	created_at: string;
 	allready: undefined | "sent" | "recieved" | "inChat";
 }
+import { api } from "./auth/api";
 
 export default function NewChat() {
 	const [inputValue, setInputValue] = useState<string>("");
@@ -38,55 +39,51 @@ export default function NewChat() {
 	};
 
 	const deletFetch = async (pedido: string) => {
-		const response = await fetch(`${host}/api/pedidos/`, {
-			method: "DELETE",
-			body: JSON.stringify({
-				pedido,
-			}),
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
+		try {
+			const response = await api.delete(`${host}/api/pedidos/`, {
+				data: JSON.stringify({
+					pedido,
+				}),
+			});
 
-		if (response.ok) {
-			return true;
-		} else {
-			return false;
+			return response.status === 200;
+		} catch {
+			console.log("Deu erro ao tentar apagar pedido...");
 		}
 	};
 
 	const putChatFetch = async (userId: number) => {
-		fetch(`${host}/api/chats/new_chat`, {
-			method: "PUT",
-			body: JSON.stringify({
+		const response = await api.put(
+			`${host}/api/chats/new_chat`,
+			JSON.stringify({
 				users: [userId, user?.id],
 			}),
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-		}).then((res) => {
-			if (res.ok) {
-				console.log("sucesso...");
-				if (!user?.pedidos) {
-					return;
-				}
-				const pedidos = user?.pedidos.filter(
-					(element) => !element.includes(String(userId))
-				);
-
-				setUser({
-					id: user?.id,
-					user_name: user?.user_name,
-					email_address: user?.email_address,
-					profile_img: user?.profile_img,
-					created_at: user?.created_at,
-					pedidos: pedidos,
-				});
-			} else {
-				console.log(res);
+			{
+				headers: {
+					"Content-Type": "application/json",
+				},
 			}
-		});
+		);
+
+		if (response.status === 200) {
+			if (!user?.pedidos) {
+				return;
+			}
+			const pedidos = user?.pedidos.filter(
+				(element) => !element.includes(String(userId))
+			);
+
+			setUser({
+				id: user?.id,
+				user_name: user?.user_name,
+				email_address: user?.email_address,
+				profile_img: user?.profile_img,
+				created_at: user?.created_at,
+				pedidos: pedidos,
+			});
+		} else {
+			console.error("Deu erro eo criar novo chat...");
+		}
 	};
 
 	const rejeitarPedido = (userId: number) => {
@@ -145,15 +142,19 @@ export default function NewChat() {
 		const pedido = `${remetente},${destinatario}`;
 
 		try {
-			const response = await fetch(`${host}/api/pedidos`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
+			const response = await api.put(
+				`${host}/api/pedidos`,
+				JSON.stringify({
 					pedido,
 				}),
-			});
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			);
 
-			if (response.ok) {
+			if (response.status === 200) {
 				const tempUser = structuredClone(user);
 				if (!tempUser?.pedidos) return;
 
@@ -222,21 +223,18 @@ export default function NewChat() {
 			setLoading(true);
 
 			try {
-				const res = await fetch(
+				const response = await api.get<User[]>(
 					`${host}/api/users/search/${encodeURIComponent(query)}`,
-					{ signal: abortRef.current.signal }
+					{
+						signal: abortRef.current.signal,
+					}
 				);
 
-				if (res.ok) {
-					let data: User[] = await res.json();
-
-					setFetchData(data);
-				} else {
-					setFetchData([]);
-				}
+				setFetchData(response.data);
 			} catch (err: any) {
-				if (err.name !== "AbortError") {
-					console.error(err);
+				// Axios lança erro mesmo em cancelamento
+				if (err.name !== "CanceledError" && err.name !== "AbortError") {
+					setFetchData([]);
 				}
 			} finally {
 				setLoading(false);

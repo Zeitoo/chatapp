@@ -48,14 +48,18 @@ function Direct() {
 			if (user.pedidos) {
 				user.pedidos.length > 0 ? setHasPedidos(true) : "";
 			}
-
-			chatsRequest();
 		}, 500);
 	}, [user, openedChat]);
 
 	useEffect(() => {
 		document.title = "Direct";
 	}, []);
+
+	useEffect(() => {
+		setTimeout(() => {
+			chatsRequest();
+		}, 1000);
+	}, [user]);
 
 	return (
 		<>
