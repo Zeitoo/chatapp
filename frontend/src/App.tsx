@@ -62,10 +62,43 @@ function App() {
 					break;
 				case "putPedido":
 					console.log(data);
+					if (!user) return;
+					const pedido = data.pedido;
+					const tempUser = structuredClone(user);
+
+					tempUser?.pedidos.push(pedido.split(","));
+					console.log(tempUser);
+
+					setUser({
+						id: user.id,
+						user_name: user.user_name,
+						email_address: user.email_address,
+						profile_img: user.profile_img,
+						created_at: user.created_at,
+						pedidos: tempUser.pedidos,
+					});
 					break;
 
 				case "delPedido":
 					console.log(data);
+					const userId = data.pedido.split(",")[1];
+					if (!user) return;
+					// atualiza o user no contexto
+					const pedidos = user.pedidos.filter(
+						(element) => !element.includes(String(userId))
+					);
+
+					console.log(pedidos);
+
+					setUser({
+						id: user.id,
+						user_name: user.user_name,
+						email_address: user.email_address,
+						profile_img: user.profile_img,
+						created_at: user.created_at,
+						pedidos: pedidos,
+					});
+
 					break;
 			}
 		};
@@ -88,7 +121,6 @@ function App() {
 	};
 
 	const mainRequest = async () => {
-
 		try {
 			const response = await api.get(`${host}/api/auth/refresh/`);
 			if (response.status === 200) {
@@ -100,7 +132,7 @@ function App() {
 				if (route.pathname.length < 2) navigate("direct");
 			}
 		} catch (error) {
-			console.log("Erro ao fazer a requisição:", error.response);
+			console.log("Erro ao fazer a requisição:");
 			navigate("login");
 			// Aqui você pode decidir o que fazer em caso de erro, ex: mostrar mensagem ou navegar para login
 		}

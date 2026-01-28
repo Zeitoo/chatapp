@@ -1,4 +1,4 @@
-import logo from "../public/vite.svg";
+import logo from "/vite.svg";
 import { useNavigate, useOutletContext, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./Hooks/useUser";

@@ -46,9 +46,11 @@ export async function handleWebSocketConnection(
 					break;
 				case "putPedido":
 					handlePutPedido(data, String(dados.id), ws);
+
 					break;
 				case "delPedido":
 					handleDelPedido(data, String(dados.id), ws);
+
 					break;
 			}
 		} catch (error) {
@@ -126,15 +128,13 @@ async function handlePutPedido(
 	const destinatarios = data.pedido?.split(",");
 	if (!destinatarios) return;
 
-	destinatarios?.forEach((destinatario) => {
-		if (!users.get(destinatario)) return;
-		users.get(destinatario)?.socket.send(
-			JSON.stringify({
-				titulo: "putPedido",
-				pedido: data.pedido,
-			})
-		);
-	});
+	if (!users.get(destinatarios[1])) return;
+	users.get(destinatarios[1])?.socket.send(
+		JSON.stringify({
+			titulo: "putPedido",
+			pedido: data.pedido,
+		})
+	);
 }
 
 async function handleDelPedido(
@@ -145,13 +145,11 @@ async function handleDelPedido(
 	const destinatarios = data.pedido?.split(",");
 	if (!destinatarios) return;
 
-	destinatarios?.forEach((destinatario) => {
-		if (!users.get(destinatario)) return;
-		users.get(destinatario)?.socket.send(
-			JSON.stringify({
-				titulo: "delPedido",
-				pedido: data.pedido,
-			})
-		);
-	});
+	if (!users.get(destinatarios[1])) return;
+	users.get(destinatarios[1])?.socket.send(
+		JSON.stringify({
+			titulo: "delPedido",
+			pedido: data.pedido,
+		})
+	);
 }

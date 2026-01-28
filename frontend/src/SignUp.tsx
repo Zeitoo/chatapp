@@ -5,7 +5,7 @@ import { useSignUp } from "./Hooks/UseSignUp";
 import { Step1Form } from "./Components/SignUp/Step1Form";
 import { Step2Form } from "./Components/SignUp/Step2Form";
 import { Step3Form } from "./Components/SignUp/Step3Form";
-import logo from "../public/vite.svg";
+import logo from "/vite.svg";
 
 export default function SignUp() {
 	const {

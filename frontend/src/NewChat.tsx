@@ -280,7 +280,6 @@ export default function NewChat() {
 	}, [inputValue]);
 
 	const backButtonHandler = () => {
-		
 		setIsChatOpen(false);
 		setOpenedChats(null);
 		document.title = "Direct";
@@ -291,11 +290,11 @@ export default function NewChat() {
 		setIsChatOpen(true);
 		setOpenedChats("abcd");
 
-		return () => {
-			setIsChatOpen(true);
-			setOpenedChats("abcd");
-		};
 		document.title = "New Chats";
+		return () => {
+			setIsChatOpen(false);
+			setOpenedChats(null);
+		};
 	}, []);
 
 	return (

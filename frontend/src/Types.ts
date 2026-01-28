@@ -34,7 +34,7 @@ export interface User {
 	email_address?: string;
 	profile_img?: string;
 	created_at?: string;
-	pedidos?: string[][];
+	pedidos: string[][];
 }
 
 export interface Chat {

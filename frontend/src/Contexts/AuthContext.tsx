@@ -27,7 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
-	const [loading, setLoading] = useState(false);
+	const [loading] = useState(false);
 
 	// access token só em memória
 	const accessTokenRef = useRef<string | null>(null);
