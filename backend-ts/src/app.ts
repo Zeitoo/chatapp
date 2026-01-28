@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { corsOptions } from "./config/cors";
 import routes from "./routes";
+import { Request, Response } from "express";
 
 export function createApp() {
 	const app = express();
@@ -13,7 +14,7 @@ export function createApp() {
 
 	app.use("/api", routes);
 
-	app.get("/", (_req, res) => {
+	app.get("/", (req, res) => {
 		res.json({
 			status: "online",
 			message: "API funcionando",
@@ -21,7 +22,7 @@ export function createApp() {
 		});
 	});
 
-	app.use((_req, res) => {
+	app.use((req: Request, res: Response) => {
 		res.status(404).json({ message: "Rota não encontrada" });
 	});
 
