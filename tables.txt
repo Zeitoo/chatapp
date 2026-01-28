@@ -1,0 +1,53 @@
+
+| chat_users | CREATE TABLE `chat_users` (
+  `chat_id` char(8) NOT NULL,
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`chat_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `chat_users_ibfk_1` FOREIGN KEY (`chat_id`) REFERENCES `chats` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chat_users_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+Table                                                                                                                                                                                                              
+| users | CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_name` varchar(50) NOT NULL,
+  `email_address` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `profile_img` int NOT NULL DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_name` (`user_name`),
+  UNIQUE KEY `email_address` (`email_address`)
+) ENGINE=InnoDB AUTO_INCREMENT=1060 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+                                                                                                
+| messages | CREATE TABLE `messages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `chat_id` char(8) NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `conteudo` text NOT NULL,
+  `enviado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_chat_id_enviado_em` (`chat_id`,`enviado_em`),
+  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chat_id`) REFERENCES `chats` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1994 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+
+| pedidos | CREATE TABLE `pedidos` (
+  `fromto` varchar(10) NOT NULL,
+  PRIMARY KEY (`fromto`),
+  UNIQUE KEY `fromto` (`fromto`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+
+
+| refresh_tokens | CREATE TABLE `refresh_tokens` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `revoked` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token_hash` (`token_hash`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=432 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |

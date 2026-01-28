@@ -72,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							"/api/auth/refresh"
 						);
 
-						console.log(refreshResponse);
 						const { access_token, user } = refreshResponse.data;
 
 						setAccessToken(access_token);

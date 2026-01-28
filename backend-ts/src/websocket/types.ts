@@ -23,6 +23,7 @@ export interface WebSocketMessage {
 		chat: Chat;
 	};
 	access_token: string;
+	pedido?: string
 }
 
 export interface AuthenticatedSocket extends WebSocket {

@@ -28,6 +28,7 @@ export async function handleWebSocketConnection(
 	ws.on("message", async (message: Buffer) => {
 		try {
 			const data: WebSocketMessage = JSON.parse(message.toString());
+			console.log(data);
 			const access_token = data.access_token;
 
 			if (!process.env.AUTHORIZATION_SECRET || !access_token) return;
@@ -37,11 +38,17 @@ export async function handleWebSocketConnection(
 				process.env.AUTHORIZATION_SECRET
 			) as JwtPayloadWithId;
 
-			if (!dados || !dados.id) return
+			if (!dados || !dados.id || Number(userId) != dados.id) return;
 
 			switch (data.titulo) {
 				case "newMsg":
 					await handleNewMessage(data, userId, ws);
+					break;
+				case "putPedido":
+					handlePutPedido(data, String(dados.id), ws);
+					break;
+				case "delPedido":
+					handleDelPedido(data, String(dados.id), ws);
 					break;
 			}
 		} catch (error) {
@@ -109,4 +116,42 @@ async function handleNewMessage(
 			);
 		}
 	}
+}
+
+async function handlePutPedido(
+	data: WebSocketMessage,
+	senderUserId: string,
+	senderWs: WebSocket
+) {
+	const destinatarios = data.pedido?.split(",");
+	if (!destinatarios) return;
+
+	destinatarios?.forEach((destinatario) => {
+		if (!users.get(destinatario)) return;
+		users.get(destinatario)?.socket.send(
+			JSON.stringify({
+				titulo: "putPedido",
+				pedido: data.pedido,
+			})
+		);
+	});
+}
+
+async function handleDelPedido(
+	data: WebSocketMessage,
+	senderUserId: string,
+	senderWs: WebSocket
+) {
+	const destinatarios = data.pedido?.split(",");
+	if (!destinatarios) return;
+
+	destinatarios?.forEach((destinatario) => {
+		if (!users.get(destinatario)) return;
+		users.get(destinatario)?.socket.send(
+			JSON.stringify({
+				titulo: "delPedido",
+				pedido: data.pedido,
+			})
+		);
+	});
 }

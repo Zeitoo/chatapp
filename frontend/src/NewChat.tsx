@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useChat } from "./Hooks/useChat";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import type { Chat } from "./Types";
+import { useAuth } from "./Contexts/AuthContext";
+
 interface User {
 	id: number;
 	user_name: string;
@@ -21,10 +23,10 @@ export default function NewChat() {
 
 	const timeoutRef = useRef<number | null>(null);
 	const abortRef = useRef<AbortController | null>(null);
-
+	const { getAccessToken } = useAuth();
 	const host = import.meta.env.VITE_API_URL;
 	const navigate = useNavigate();
-	const { user, setUser } = useUser();
+	const { ws, user, setUser } = useUser();
 
 	const { chats, setOpenedChats } = useOutletContext<{
 		chats: Chat[];
@@ -41,10 +43,19 @@ export default function NewChat() {
 	const deletFetch = async (pedido: string) => {
 		try {
 			const response = await api.delete(`${host}/api/pedidos/`, {
-				data: JSON.stringify({
+				data: {
 					pedido,
-				}),
+				},
 			});
+
+			ws.current?.send(
+				JSON.stringify({
+					titulo: "delPedido",
+					pedido,
+					userId: user?.id,
+					access_token: getAccessToken(),
+				})
+			);
 
 			return response.status === 200;
 		} catch {
@@ -117,21 +128,35 @@ export default function NewChat() {
 		const pedido = `${user?.id},${userId}`;
 		deletFetch(pedido).then((res) => {
 			if (res) {
-				if (!user?.pedidos) {
-					return;
-				}
-				const pedidos = user?.pedidos.filter(
+				if (!user?.pedidos) return;
+
+				// atualiza o user no contexto
+				const pedidos = user.pedidos.filter(
 					(element) => !element.includes(String(userId))
 				);
 
 				setUser({
-					id: user?.id,
-					user_name: user?.user_name,
-					email_address: user?.email_address,
-					profile_img: user?.profile_img,
-					created_at: user?.created_at,
+					id: user.id,
+					user_name: user.user_name,
+					email_address: user.email_address,
+					profile_img: user.profile_img,
+					created_at: user.created_at,
 					pedidos: pedidos,
 				});
+
+				// atualiza os resultados mostrados na UI (remove o estado "sent" do usuário)
+				setResults((prev) =>
+					prev.map((u) =>
+						u.id === userId ? { ...u, allready: undefined } : u
+					)
+				);
+
+				// também atualiza os dados de busca para manter consistência
+				setFetchData((prev) =>
+					prev.map((u) =>
+						u.id === userId ? { ...u, allready: undefined } : u
+					)
+				);
 			}
 		});
 	};
@@ -160,6 +185,14 @@ export default function NewChat() {
 
 				tempUser?.pedidos.push(pedido.split(","));
 				setUser(tempUser);
+				ws.current?.send(
+					JSON.stringify({
+						titulo: "putPedido",
+						pedido,
+						userId: user?.id,
+						access_token: getAccessToken(),
+					})
+				);
 			}
 		} catch {
 			console.log("deu erro");
@@ -207,7 +240,7 @@ export default function NewChat() {
 	useEffect(() => {
 		const query = inputValue.trim();
 
-		if (query.length < 5) {
+		if (query.length < 3) {
 			setResults([]);
 			return;
 		}
@@ -247,6 +280,7 @@ export default function NewChat() {
 	}, [inputValue]);
 
 	const backButtonHandler = () => {
+		
 		setIsChatOpen(false);
 		setOpenedChats(null);
 		document.title = "Direct";
@@ -256,6 +290,11 @@ export default function NewChat() {
 	useEffect(() => {
 		setIsChatOpen(true);
 		setOpenedChats("abcd");
+
+		return () => {
+			setIsChatOpen(true);
+			setOpenedChats("abcd");
+		};
 		document.title = "New Chats";
 	}, []);
 

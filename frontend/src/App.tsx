@@ -44,18 +44,29 @@ function App() {
 
 		ws.current.onmessage = (message) => {
 			const data = JSON.parse(message.data);
-			if (data.titulo === "newMsg") {
-				delete data.titulo;
+			console.log(data);
 
-				if (!Chats.current) return;
+			switch (data.titulo) {
+				case "newMsg":
+					delete data.titulo;
 
-				const tempChats = Chats.current.map((chat) =>
-					chat.id === data.chat_id
-						? { ...chat, msgs: [...chat.msgs, data] }
-						: chat
-				);
+					if (!Chats.current) return;
 
-				setChats(tempChats);
+					const tempChats = Chats.current.map((chat) =>
+						chat.id === data.chat_id
+							? { ...chat, msgs: [...chat.msgs, data] }
+							: chat
+					);
+
+					setChats(tempChats);
+					break;
+				case "putPedido":
+					console.log(data);
+					break;
+
+				case "delPedido":
+					console.log(data);
+					break;
 			}
 		};
 
@@ -77,7 +88,7 @@ function App() {
 	};
 
 	const mainRequest = async () => {
-		console.log("main request");
+
 		try {
 			const response = await api.get(`${host}/api/auth/refresh/`);
 			if (response.status === 200) {

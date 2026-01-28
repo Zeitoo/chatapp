@@ -25,8 +25,6 @@ export async function verifyAuth(
 		typeof authorization === "string"
 			? authorization.split(" ")[1]
 			: undefined;
-
-	console.log("Verificando....:  /   ", req.headers);
 	if (!access_token || !process.env.AUTHORIZATION_SECRET) {
 		return res.status(401).json({ message: "Credenciais ausentes." });
 	}
@@ -45,7 +43,6 @@ export async function verifyAuth(
 
 		return next();
 	} catch (err) {
-		// usa explicitamente 'err' aqui — bom para logs / respostas mais informativas
 		if (err instanceof TokenExpiredError) {
 			return res.status(401).json({ message: "Access token expirado." });
 		}

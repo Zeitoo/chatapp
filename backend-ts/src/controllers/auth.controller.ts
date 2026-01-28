@@ -13,6 +13,7 @@ import { User } from "../Types";
 
 export class AuthController {
 	static async login(req: Request, res: Response) {
+		const pedidos = [];
 		const { email, password } = req.body;
 		if (!email || !password) {
 			return res.status(400).json({ message: "Dados insuficientes." });
@@ -50,6 +51,14 @@ export class AuthController {
 
 		const id = user.id;
 		const user_name = user.user_name;
+
+		const pedidosReq = await getPedidos(user.id);
+
+		for (let pedido of pedidosReq) {
+			pedidos.push(pedido.fromto.split(","));
+		}
+
+		user.pedidos = pedidos;
 
 		res.cookie("refresh_token", refreshToken, {
 			httpOnly: true,
