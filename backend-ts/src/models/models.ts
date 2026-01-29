@@ -275,13 +275,13 @@ export const putUser = async (user: {
 	profileImg?: string | null;
 }): Promise<boolean | null> => {
 	try {
-		await query(
+		const response = await query(
 			`INSERT INTO users (user_name, email_address, password_hash, profile_img)
        VALUES (?, ?, ?, ?);`,
 			[
 				user.userName,
 				user.emailAddress,
-				hashPassword(user.password),
+				user.password,
 				user.profileImg ?? null,
 			]
 		);
@@ -294,6 +294,7 @@ export const putUser = async (user: {
 		) {
 			return null;
 		}
+		console.log(e);
 		return null;
 	}
 };
@@ -346,38 +347,39 @@ export const deletePedido = async (pedido: string): Promise<boolean> => {
 };
 
 export const putNewChat = async (
-  chatId: string,
-  users: number[]
+	chatId: string,
+	users: number[]
 ): Promise<boolean> => {
-  const conn = await pool.getConnection();
+	const conn = await pool.getConnection();
 
-  try {
-    await conn.beginTransaction();
+	try {
+		await conn.beginTransaction();
 
-    const [chat] = await conn.query(
-      `INSERT INTO chats (id, tipo) VALUES (?, 'privado');`,
-      [chatId]
-    ) as any;
+		const [chat] = (await conn.query(
+			`INSERT INTO chats (id, tipo) VALUES (?, 'privado');`,
+			[chatId]
+		)) as any;
 
-    if (chat.affectedRows < 1) throw new Error("Chat não criado");
+		if (chat.affectedRows < 1) throw new Error("Chat não criado");
 
-    for (const userId of users) {
-      const [cu] = await conn.query(
-        `INSERT INTO chat_users (chat_id, user_id) VALUES (?, ?);`,
-        [chatId, userId]
-      ) as any;
+		for (const userId of users) {
+			const [cu] = (await conn.query(
+				`INSERT INTO chat_users (chat_id, user_id) VALUES (?, ?);`,
+				[chatId, userId]
+			)) as any;
 
-      if (cu.affectedRows < 1) throw new Error("Falha ao inserir usuário");
-    }
+			if (cu.affectedRows < 1)
+				throw new Error("Falha ao inserir usuário");
+		}
 
-    await conn.commit();
-    return true;
-  } catch (err) {
-    await conn.rollback();
-    return false;
-  } finally {
-    conn.release();
-  }
+		await conn.commit();
+		return true;
+	} catch (err) {
+		await conn.rollback();
+		return false;
+	} finally {
+		conn.release();
+	}
 };
 
 /* ================= USERS ================= */

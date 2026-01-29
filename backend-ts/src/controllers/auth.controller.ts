@@ -75,14 +75,11 @@ export class AuthController {
 
 	static async signup(req: Request, res: Response) {
 		const user = req.body;
-
 		if (!user.userName || !user.emailAddress || !user.password) return;
 
 		// Hash da senha antes de armazenar
-		user.password_hash = hashPassword(user.password);
-
+		user.password = await hashPassword(user.password);
 		const estado = await putUser(user);
-
 		if (estado) {
 			return res.status(201).json({ message: "signup successful" });
 		}
