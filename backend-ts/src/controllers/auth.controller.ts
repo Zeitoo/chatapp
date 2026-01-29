@@ -60,10 +60,13 @@ export class AuthController {
 
 		user.pedidos = pedidos;
 
+		const isProduction = process.env.NODE_ENV === "production";
+
 		res.cookie("refresh_token", refreshToken, {
 			httpOnly: true,
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
 			maxAge: 1000 * 60 * 60 * 24 * 7,
-			secure: false,
 		});
 
 		return res.status(200).json({
@@ -105,6 +108,7 @@ export class AuthController {
 			});
 		}
 
+		const isProduction = process.env.NODE_ENV === "production";
 		const user: User = {
 			id: response.user_id,
 			user_name: response.user_name,
@@ -128,10 +132,11 @@ export class AuthController {
 			.digest("hex");
 
 		if (!user.id || !user.user_name) {
-			return res.cookie("refresh_token", refreshToken, {
+			res.cookie("refresh_token", refreshToken, {
 				httpOnly: true,
-				maxAge: 1000 * 6,
-				secure: false,
+				secure: isProduction,
+				sameSite: isProduction ? "none" : "lax",
+				maxAge: 2000,
 			});
 		}
 
@@ -140,8 +145,9 @@ export class AuthController {
 
 		res.cookie("refresh_token", refreshToken, {
 			httpOnly: true,
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
 			maxAge: 1000 * 60 * 60 * 24 * 7,
-			secure: false,
 		});
 
 		return res.status(200).json({

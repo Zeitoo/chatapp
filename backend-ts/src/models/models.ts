@@ -3,7 +3,9 @@ import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../config/config_db";
 import crypto from "crypto";
 import { RefreshTokenWithUser } from "../Types";
-import { hashPassword } from "../utils/crypto";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 type AnyRow = Record<string, any>;
 
@@ -257,13 +259,13 @@ export const getRefreshToken = async (refreshToken: string) => {
     FROM refresh_tokens rt
     INNER JOIN users u ON u.id = rt.user_id
     WHERE rt.token_hash = ?
+	${process.env.NODE_ENV === "development" ? "" : "AND rt.revoked = false"}
+	
   
-      AND rt.expires_at > NOW()
+      AND rt.expires_at > NOW();
     `,
 		[refreshTokenHash]
 	);
-
-	`    AND rt.revoked = false`;
 
 	return rows.length ? rows[0] : null;
 };
