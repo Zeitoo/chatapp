@@ -29,8 +29,9 @@ function SignIn() {
 			},
 		});
 
-		if (response.statusText == "OK") {
+		if (response.status === 200) {
 			const data = response.data;
+			console.log("From sign in:   ", data);
 			setAccessToken(data.access_token);
 
 			setUser(data.user);
