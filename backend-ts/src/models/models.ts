@@ -376,8 +376,9 @@ export const putNewChat = async (
 
 		await conn.commit();
 		return true;
-	} catch (err) {
+	} catch (error) {
 		await conn.rollback();
+		console.log(error)
 		return false;
 	} finally {
 		conn.release();

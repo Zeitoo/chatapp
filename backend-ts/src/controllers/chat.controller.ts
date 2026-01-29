@@ -51,8 +51,7 @@ export class ChatController {
 		if (chatExiste) {
 			return res.status(409).json({ message: "Chat já existe" });
 		}
-
-		const criado = await putNewChat(generateId(), users);
+		const criado = await putNewChat(generateId(10), users);
 		if (!criado) {
 			return res.status(500).json({ message: "Erro ao criar chat" });
 		}

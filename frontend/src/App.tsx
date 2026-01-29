@@ -40,6 +40,15 @@ function App() {
 				clearInterval(reconnectInterval.current);
 				reconnectInterval.current = null;
 			}
+
+			setTimeout(() => {
+				ws.current?.send(
+					JSON.stringify({
+						titulo: "activate",
+						access_token: getAccessToken(),
+					})
+				);
+			}, 1000);
 		};
 
 		ws.current.onmessage = (message) => {

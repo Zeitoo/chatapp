@@ -14,10 +14,10 @@ export function useRequests() {
 	const deletFetch = useCallback(async (pedido: string): Promise<boolean> => {
 		try {
 			const response = await api.delete(`${host}/api/pedidos/`, {
-				data: {pedido},
+				data: { pedido },
 			});
 
-			return response.status === 200;
+			return response.statusText == "OK";
 		} catch (error) {
 			console.error("Erro ao deletar pedido:", error);
 			return false;
@@ -39,7 +39,7 @@ export function useRequests() {
 					}
 				);
 
-				return response.status === 200;
+				return response.statusText == "OK";
 			} catch (error) {
 				console.error("Erro ao criar chat:", error);
 				return false;

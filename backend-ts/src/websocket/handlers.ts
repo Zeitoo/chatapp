@@ -23,8 +23,6 @@ export async function handleWebSocketConnection(
 		return;
 	}
 
-	users.set(userId, { userId, socket: ws });
-
 	ws.on("message", async (message: Buffer) => {
 		try {
 			const data: WebSocketMessage = JSON.parse(message.toString());
@@ -38,7 +36,18 @@ export async function handleWebSocketConnection(
 				process.env.AUTHORIZATION_SECRET
 			) as JwtPayloadWithId;
 
-			if (!dados || !dados.id || Number(userId) != dados.id) return;
+			if (!dados || !dados.id || Number(userId) != dados.id) {
+				ws.close();
+				users.delete(userId);
+				return;
+			}
+
+			if (!users.has(String(dados.id))) {
+				users.set(String(dados.id), {
+					userId: String(dados.id),
+					socket: ws,
+				});
+			}
 
 			switch (data.titulo) {
 				case "newMsg":
@@ -46,11 +55,11 @@ export async function handleWebSocketConnection(
 					break;
 				case "putPedido":
 					handlePutPedido(data, String(dados.id), ws);
-
 					break;
 				case "delPedido":
 					handleDelPedido(data, String(dados.id), ws);
-
+					break;
+				case "activate":
 					break;
 			}
 		} catch (error) {
@@ -74,6 +83,13 @@ async function handleNewMessage(
 	senderUserId: string,
 	senderWs: WebSocket
 ) {
+	if (
+		!data.body ||
+		!data.body.chat ||
+		!Array.isArray(data.body.chat.participants)
+	)
+		return;
+
 	const conteudo = data.body.content;
 	const chatId = data.body.chat.id;
 	const participants = data.body.chat.participants;

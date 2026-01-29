@@ -57,7 +57,7 @@ export default function NewChat() {
 				})
 			);
 
-			return response.status === 200;
+			return response.statusText == "OK";
 		} catch {
 			console.log("Deu erro ao tentar apagar pedido...");
 		}
@@ -76,13 +76,12 @@ export default function NewChat() {
 			}
 		);
 
-		if (response.status === 200) {
-			if (!user?.pedidos) {
-				return;
-			}
+		if (response.statusText == "OK") {
 			const pedidos = user?.pedidos.filter(
 				(element) => !element.includes(String(userId))
 			);
+
+			if (!user?.id || !pedidos) return;
 
 			setUser({
 				id: user?.id,
@@ -179,7 +178,7 @@ export default function NewChat() {
 				}
 			);
 
-			if (response.status === 200) {
+			if (response.statusText == "OK") {
 				const tempUser = structuredClone(user);
 				if (!tempUser?.pedidos) return;
 
