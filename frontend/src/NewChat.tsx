@@ -334,133 +334,135 @@ export default function NewChat() {
 				{loading && <p className="text-sm opacity-60">Buscando...</p>}
 
 				{results.length > 0 ? (
-					results.map((u) => {
-						return (
-							<div
-								key={u.id}
-								className={`p-4 my-2 ${
-									u.allready === "inChat" ||
-									u.allready === "sent" ||
-									u.allready === "recieved"
-										? "bg-green-1"
-										: "profile"
-								} cursor-pointer rounded-lg flex justify-between hover:opacity-80`}>
-								<div className="flex items-center gap-5">
-									<div className="w-20">
-										<img
-											className="w-full no-select rounded-full"
-											src={`/Avatars/avatar (${u?.profile_img}).png`}
-										/>
+					results
+						.filter((element) => element.id != user?.id)
+						.map((u) => {
+							return (
+								<div
+									key={u.id}
+									className={`p-4 my-2 ${
+										u.allready === "inChat" ||
+										u.allready === "sent" ||
+										u.allready === "recieved"
+											? "bg-green-1"
+											: "profile"
+									} cursor-pointer rounded-lg flex justify-between hover:opacity-80`}>
+									<div className="flex items-center gap-5">
+										<div className="w-20">
+											<img
+												className="w-full no-select rounded-full"
+												src={`/Avatars/avatar (${u?.profile_img}).png`}
+											/>
+										</div>
+										<div>
+											<p className="font-medium text-lg">
+												{u.user_name}
+											</p>
+											<p className="text-xs opacity-60">
+												{u.email_address}
+											</p>
+										</div>
 									</div>
-									<div>
-										<p className="font-medium text-lg">
-											{u.user_name}
-										</p>
-										<p className="text-xs opacity-60">
-											{u.email_address}
-										</p>
-									</div>
+									{u?.allready === "recieved" ? (
+										<div className="flex gap-3 items-center">
+											<button
+												onClick={() => {
+													rejeitarPedido(u.id);
+												}}
+												className="cursor">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													fill="none"
+													viewBox="0 0 24 24"
+													strokeWidth={1.5}
+													stroke="currentColor"
+													className="size-6">
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M6 18 18 6M6 6l12 12"
+													/>
+												</svg>
+											</button>
+											<button
+												onClick={() => {
+													aceitarPedido(u.id);
+												}}
+												className="cursor">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													fill="none"
+													viewBox="0 0 24 24"
+													strokeWidth={1.5}
+													stroke="currentColor"
+													className="size-6">
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="m4.5 12.75 6 6 9-13.5"
+													/>
+												</svg>
+											</button>
+										</div>
+									) : (
+										""
+									)}
+
+									{u?.allready === "sent" ? (
+										<div className="flex gap-3 items-center">
+											<button
+												onClick={() => {
+													cancelarPedido(u.id);
+												}}
+												className="cursor">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													fill="none"
+													viewBox="0 0 24 24"
+													strokeWidth={1.5}
+													stroke="currentColor"
+													className="size-6">
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M6 18 18 6M6 6l12 12"
+													/>
+												</svg>
+											</button>
+										</div>
+									) : (
+										""
+									)}
+
+									{!u.allready ? (
+										<div className="flex items-center">
+											<button
+												onClick={(e) => {
+													e.preventDefault();
+													putPedido(u.id);
+												}}
+												className="cursor">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													fill="none"
+													viewBox="0 0 24 24"
+													strokeWidth={1.5}
+													stroke="currentColor"
+													className="size-6">
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
+													/>
+												</svg>
+											</button>
+										</div>
+									) : (
+										""
+									)}
 								</div>
-								{u?.allready === "recieved" ? (
-									<div className="flex gap-3 items-center">
-										<button
-											onClick={() => {
-												rejeitarPedido(u.id);
-											}}
-											className="cursor">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												fill="none"
-												viewBox="0 0 24 24"
-												strokeWidth={1.5}
-												stroke="currentColor"
-												className="size-6">
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M6 18 18 6M6 6l12 12"
-												/>
-											</svg>
-										</button>
-										<button
-											onClick={() => {
-												aceitarPedido(u.id);
-											}}
-											className="cursor">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												fill="none"
-												viewBox="0 0 24 24"
-												strokeWidth={1.5}
-												stroke="currentColor"
-												className="size-6">
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="m4.5 12.75 6 6 9-13.5"
-												/>
-											</svg>
-										</button>
-									</div>
-								) : (
-									""
-								)}
-
-								{u?.allready === "sent" ? (
-									<div className="flex gap-3 items-center">
-										<button
-											onClick={() => {
-												cancelarPedido(u.id);
-											}}
-											className="cursor">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												fill="none"
-												viewBox="0 0 24 24"
-												strokeWidth={1.5}
-												stroke="currentColor"
-												className="size-6">
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M6 18 18 6M6 6l12 12"
-												/>
-											</svg>
-										</button>
-									</div>
-								) : (
-									""
-								)}
-
-								{!u.allready ? (
-									<div className="flex items-center">
-										<button
-											onClick={(e) => {
-												e.preventDefault();
-												putPedido(u.id);
-											}}
-											className="cursor">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												fill="none"
-												viewBox="0 0 24 24"
-												strokeWidth={1.5}
-												stroke="currentColor"
-												className="size-6">
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
-												/>
-											</svg>
-										</button>
-									</div>
-								) : (
-									""
-								)}
-							</div>
-						);
-					})
+							);
+						})
 				) : (
 					<p className="text-center mt-4 font-bold">
 						User nao encontrado

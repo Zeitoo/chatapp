@@ -3,22 +3,22 @@ import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useUser } from "./Hooks/useUser";
 import { useChat } from "./Hooks/useChat";
 import { api } from "./auth/api";
-
 function Direct() {
 	const route = useLocation();
 	const host = import.meta.env.VITE_API_URL;
 	let chatId = route.pathname.replaceAll("/", "").replace("direct", "");
 
 	const [hasPedidos, setHasPedidos] = useState<boolean>(false);
-
 	const [openedChat, setOpenedChats] = useState<string | null>(
 		chatId.length > 0 ? chatId : null
 	);
 
+	if (chatId.length < 1 && openedChat) {
+		setOpenedChats(null);
+	}
+
 	const navigate = useNavigate();
-
 	const { chats, setChats } = useChat();
-
 	const { user } = useUser();
 
 	function clickHandler(chatId: string) {
@@ -38,18 +38,41 @@ function Direct() {
 		}
 	};
 
+	// ⭐ ATUALIZE: Sincronize hasPedidos com user.pedidos
 	useEffect(() => {
 		if (!openedChat) {
 			setOpenedChats(null);
 		}
-		setTimeout(() => {
-			if (!user) return;
 
-			if (user.pedidos) {
-				user.pedidos.length > 0 ? setHasPedidos(true) : "";
+		if (user?.pedidos) {
+			setHasPedidos(user.pedidos.length > 0);
+		}
+	}, [user, user?.pedidos, openedChat]); // Adicionei user?.pedidos como dependência
+
+	// ⭐ ADICIONE: Listener para atualizar hasPedidos em tempo real
+	useEffect(() => {
+		const updateHasPedidos = () => {
+			if (user?.pedidos) {
+				setHasPedidos(user.pedidos.length > 0);
 			}
-		}, 500);
-	}, [user, openedChat]);
+		};
+
+		window.addEventListener("pedidoAdicionado", updateHasPedidos);
+		window.addEventListener("pedidoRemovido", updateHasPedidos);
+
+		return () => {
+			window.removeEventListener("pedidoAdicionado", updateHasPedidos);
+			window.removeEventListener("pedidoRemovido", updateHasPedidos);
+		};
+	}, [user]);
+
+	useEffect(() => {
+		if (user?.pedidos) {
+			setHasPedidos(user.pedidos.length > 0);
+		} else {
+			setHasPedidos(false);
+		}
+	}, [user, user?.pedidos]);
 
 	useEffect(() => {
 		document.title = "Direct";

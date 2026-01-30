@@ -6,6 +6,13 @@ import { useChat } from "./Hooks/useChat";
 import { useAuth } from "./Contexts/AuthContext";
 import { api } from "./auth/api";
 
+declare global {
+	interface WindowEventMap {
+		pedidoAdicionado: CustomEvent<{ pedido: string[] }>;
+		pedidoRemovido: CustomEvent<{ userId: number }>;
+	}
+}
+
 function App() {
 	const { setAccessToken, getAccessToken } = useAuth();
 	const [logged, setLogged] = useState<boolean | null>(null);
@@ -48,7 +55,7 @@ function App() {
 						access_token: getAccessToken(),
 					})
 				);
-			}, 1000);
+			}, 3000);
 		};
 
 		ws.current.onmessage = (message) => {
@@ -69,6 +76,8 @@ function App() {
 
 					setChats(tempChats);
 					break;
+
+				// ⭐ ATUALIZE: As funções de dispatch
 				case "putPedido":
 					console.log(data);
 					if (!user) return;
@@ -86,28 +95,48 @@ function App() {
 						created_at: user.created_at,
 						pedidos: tempUser.pedidos,
 					});
+
+					// ⭐ CORRIJA: Dispare evento com tipagem correta
+					window.dispatchEvent(
+						new CustomEvent("pedidoAdicionado", {
+							detail: { pedido: pedido.split(",") },
+						})
+					);
 					break;
 
+				// No App.tsx, no evento "delPedido", atualize também os estados locais
 				case "delPedido":
 					console.log(data);
-					const userId = data.pedido.split(",")[1];
+					if (!data.pedido) return;
+					const pedidoParts = data.pedido.split(",");
+					const userId1 = Number(pedidoParts[0]);
+					const userId2 = Number(pedidoParts[1]);
+
 					if (!user) return;
-					// atualiza o user no contexto
+
+					// ⭐ ATUALIZE: Encontre qual userId corresponde ao outro usuário
+					const otherUserId = userId1 === user.id ? userId2 : userId1;
+
 					const pedidos = user.pedidos.filter(
-						(element) => !element.includes(String(userId))
+						(element) => !element.includes(String(otherUserId))
 					);
 
 					console.log(pedidos);
 
 					setUser({
-						id: user.id,
-						user_name: user.user_name,
-						email_address: user.email_address,
-						profile_img: user.profile_img,
-						created_at: user.created_at,
-						pedidos: pedidos,
+						...user,
+						pedidos,
 					});
 
+					// ⭐ DISPARE: Evento com ambos os IDs para fácil identificação
+					window.dispatchEvent(
+						new CustomEvent("pedidoRemovido", {
+							detail: {
+								userId: otherUserId,
+								pedido: data.pedido,
+							},
+						})
+					);
 					break;
 			}
 		};

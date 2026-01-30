@@ -23,10 +23,15 @@ export async function handleWebSocketConnection(
 		return;
 	}
 
+	setTimeout(() => {
+		if (!users.get(userId)) {
+			ws.close();
+		}
+	}, 10000);
+
 	ws.on("message", async (message: Buffer) => {
 		try {
 			const data: WebSocketMessage = JSON.parse(message.toString());
-			console.log(data);
 			const access_token = data.access_token;
 
 			if (!process.env.AUTHORIZATION_SECRET || !access_token) return;

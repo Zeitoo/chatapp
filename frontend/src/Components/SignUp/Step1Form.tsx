@@ -15,7 +15,7 @@ export function Step1Form({
 			.replace("Apelido", "");
 	};
 
-	const [hidePassword, setHidePassword] = useState<boolean>(false);
+	const [hidePassword, setHidePassword] = useState<boolean>(true);
 
 	return (
 		<form
@@ -72,10 +72,10 @@ export function Step1Form({
 						id="apelido"
 						value={formData.apelido}
 						onChange={(e) => onChange("apelido", e.target.value)}
-						/*required
+						required
 						minLength={2}
 						maxLength={20}
-						pattern="[a-zA-ZÀ-ÿ\s\-']+"*/
+						pattern="[a-zA-ZÀ-ÿ\s\-']+"
 					/>
 					{getError("apelido") && (
 						<p className="text-red-600 error-msg  text-sm px-1 pt-1">
@@ -101,8 +101,8 @@ export function Step1Form({
 					id="email"
 					value={formData.emailAddress}
 					onChange={(e) => onChange("emailAddress", e.target.value)}
-					/*required
-					maxLength={50}*/
+					required
+					maxLength={50}
 				/>
 				{getError("emailAddress") && (
 					<p className="text-red-600 error-msg  text-sm px-1 pt-1">
@@ -128,10 +128,10 @@ export function Step1Form({
 						id="password"
 						value={formData.password}
 						onChange={(e) => onChange("password", e.target.value)}
-						/*required
+						required
 						minLength={6}
-						maxLength={10}
-						title="Deve conter letras maiúsculas, minúsculas, números e caracteres especiais*/
+						maxLength={18}
+						title="Deve conter letras maiúsculas, minúsculas, números e caracteres especiais"
 					/>
 
 					<button

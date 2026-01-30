@@ -18,6 +18,7 @@ export default function SignUp() {
 		nextStep,
 		prevStep,
 		submitSignUp,
+		setStep,
 	} = useSignUp();
 
 	const handleSubmit = async () => {
@@ -60,7 +61,7 @@ export default function SignUp() {
 						formData={formData}
 						apiError={apiError}
 						loading={loading}
-						onNext={() => window.location.reload()}
+						onNext={() => setStep(1)}
 					/>
 				);
 			default:

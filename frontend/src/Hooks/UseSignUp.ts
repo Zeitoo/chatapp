@@ -150,5 +150,6 @@ export function useSignUp() {
 		prevStep,
 		submitSignUp,
 		validateStep1,
+		setStep
 	};
 }
