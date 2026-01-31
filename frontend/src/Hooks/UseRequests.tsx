@@ -1,74 +1,48 @@
-// hooks/useRequests.ts
 import { useState, useCallback } from "react";
 import type { User } from "../Types";
 import { useUser } from "./useUser";
-import { api } from "../auth/api";
-
-const host = import.meta.env.VITE_API_URL;
+import { requestService } from "../services/requestService";
+import { useAuth } from "../Contexts/AuthContext";
 
 export function useRequests() {
-	const { user, setUser } = useUser();
+	const { getAccessToken } = useAuth();
+	const { user, setUser, ws } = useUser();
 	const [recebidos, setRecebidos] = useState<User[] | null>(null);
 	const [enviados, setEnviados] = useState<User[] | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 
-	const deletFetch = useCallback(async (pedido: string): Promise<boolean> => {
-		try {
-			const response = await api.delete(`${host}/api/pedidos/`, {
-				data: { pedido },
-			});
-			return response.statusText === "OK";
-		} catch (error) {
-			console.error("Erro ao deletar pedido:", error);
-			return false;
-		}
-	}, []);
-
-	const putChatFetch = useCallback(
-		async (userId: number): Promise<boolean> => {
-			try {
-				const response = await api.put(
-					`${host}/api/chats/new_chat`,
+	// 🔥 Funções de WebSocket (reutilizáveis)
+	const notifyWebSocket = useCallback(
+		(titulo: string, pedido: string) => {
+			if (ws.current && user?.id) {
+				ws.current.send(
 					JSON.stringify({
-						users: [userId, user?.id],
-					}),
-					{
-						headers: {
-							"Content-Type": "application/json",
-						},
-					}
+						titulo,
+						pedido,
+						userId: user.id,
+						access_token: getAccessToken(),
+					})
 				);
-				return response.statusText === "OK";
-			} catch (error) {
-				console.error("Erro ao criar chat:", error);
-				return false;
 			}
 		},
-		[user?.id]
+		[ws, user?.id, getAccessToken]
 	);
 
-	const fetchUsers = useCallback(
-		async (userIds: string[]): Promise<User[]> => {
-			try {
-				const response = await api.post<User[]>(`${host}/api/users`, {
-					users: userIds,
-				});
-				return response.data;
-			} catch (error) {
-				console.error("Erro ao buscar usuários:", error);
-				return [];
-			}
-		},
-		[]
+	const notifyDelete = useCallback(
+		(pedido: string) => notifyWebSocket("delPedido", pedido),
+		[notifyWebSocket]
 	);
 
-	// ⭐ CORRIJA: Atualize o estado do usuário localmente
-	const updateUserPedidos = useCallback(
-		(userId: number, isRecebido: boolean) => {
-			isRecebido;
-			if (!user?.pedidos) return;
+	const notifyCreate = useCallback(
+		(pedido: string) => notifyWebSocket("putPedido", pedido),
+		[notifyWebSocket]
+	);
 
-			// Remova o pedido da lista local
+	// 🔥 Atualização local do usuário (otimizada)
+	const updateLocalUser = useCallback(
+		(userId: number, isRemoving: boolean = true) => {
+			if (!user?.pedidos || !isRemoving) return;
+
 			const pedidos = user.pedidos.filter(
 				(element) => !element.includes(String(userId))
 			);
@@ -81,11 +55,7 @@ export function useRequests() {
 		[user, setUser]
 	);
 
-	const clearRequests = useCallback(() => {
-		setRecebidos(null);
-		setEnviados(null);
-	}, []);
-
+	// 🔥 Carregamento de pedidos
 	const loadRequests = useCallback(async () => {
 		if (!user?.pedidos) {
 			setRecebidos([]);
@@ -95,33 +65,30 @@ export function useRequests() {
 
 		setIsLoading(true);
 
-		const recebidosArray: string[] = [];
-		const enviadosArray: string[] = [];
-
-		user.pedidos.forEach((c) => {
-			const id1 = c[0];
-			const id2 = c[1];
-			if (Number(id1) === user.id) {
-				enviadosArray.push(id2);
-			} else {
-				recebidosArray.push(id1);
-			}
-		});
+		const { recebidosIds, enviadosIds } = user.pedidos.reduce(
+			(acc, [id1, id2]) => {
+				if (Number(id1) === user.id) {
+					acc.enviadosIds.push(id2);
+				} else {
+					acc.recebidosIds.push(id1);
+				}
+				return acc;
+			},
+			{ recebidosIds: [] as string[], enviadosIds: [] as string[] }
+		);
 
 		try {
-			// Busque ambos em paralelo
 			const [recebidosData, enviadosData] = await Promise.all([
-				recebidosArray.length > 0
-					? fetchUsers(recebidosArray)
-					: Promise.resolve([]),
-				enviadosArray.length > 0
-					? fetchUsers(enviadosArray)
-					: Promise.resolve([]),
+				recebidosIds.length > 0
+					? requestService.fetchUsers(recebidosIds)
+					: [],
+				enviadosIds.length > 0
+					? requestService.fetchUsers(enviadosIds)
+					: [],
 			]);
 
-			// ⭐ CORRIJA: Verifique se os dados são arrays válidos
-			setRecebidos(Array.isArray(recebidosData) ? recebidosData : []);
-			setEnviados(Array.isArray(enviadosData) ? enviadosData : []);
+			setRecebidos(recebidosData);
+			setEnviados(enviadosData);
 		} catch (error) {
 			console.error("Erro ao carregar pedidos:", error);
 			setRecebidos([]);
@@ -129,64 +96,132 @@ export function useRequests() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [user, fetchUsers]);
+	}, [user]);
 
-	// ⭐ CORRIJA: Funções de ação sincronizadas
+	// 🔥 Ações de pedidos (compartilháveis)
 	const rejeitarPedido = useCallback(
 		async (userId: number) => {
-			const pedido = `${userId},${user?.id}`;
-			const success = await deletFetch(pedido);
+			if (!user?.id) return false;
+
+			const pedido = `${userId},${user.id}`;
+			const success = await requestService.deleteRequest(pedido);
 
 			if (success) {
-				// Atualize localmente
-				updateUserPedidos(userId, true);
-				setRecebidos((prev) =>
-					prev ? prev.filter((u) => u.id !== userId) : []
+				updateLocalUser(userId);
+				notifyDelete(pedido);
+				setRecebidos(
+					(prev) => prev?.filter((u) => u.id !== userId) || []
 				);
 			}
 
 			return success;
 		},
-		[deletFetch, user?.id, updateUserPedidos]
+		[user?.id, updateLocalUser, notifyDelete]
 	);
 
 	const aceitarPedido = useCallback(
 		async (userId: number) => {
-			const success = await putChatFetch(userId);
+			if (!user?.id) return false;
 
-			if (success) {
-				// Primeiro remova o pedido
-				const deleteSuccess = await deletFetch(`${userId},${user?.id}`);
+			const chatSuccess = await requestService.createChat(
+				userId,
+				user.id
+			);
+
+			if (chatSuccess) {
+				const pedido = `${userId},${user.id}`;
+				const deleteSuccess = await requestService.deleteRequest(
+					pedido
+				);
+
 				if (deleteSuccess) {
-					// Atualize localmente
-					updateUserPedidos(userId, true);
-					setRecebidos((prev) =>
-						prev ? prev.filter((u) => u.id !== userId) : []
+					updateLocalUser(userId);
+					notifyDelete(pedido);
+					setRecebidos(
+						(prev) => prev?.filter((u) => u.id !== userId) || []
 					);
 				}
+				return deleteSuccess;
 			}
 
-			return success;
+			return false;
 		},
-		[putChatFetch, deletFetch, user?.id, updateUserPedidos]
+		[user?.id, updateLocalUser, notifyDelete]
 	);
 
 	const cancelarPedido = useCallback(
 		async (userId: number) => {
-			const pedido = `${user?.id},${userId}`;
-			const success = await deletFetch(pedido);
+			if (!user?.id) return false;
+
+			const pedido = `${user.id},${userId}`;
+			const success = await requestService.deleteRequest(pedido);
 
 			if (success) {
-				// Atualize localmente
-				updateUserPedidos(userId, false);
-				setEnviados((prev) =>
-					prev ? prev.filter((u) => u.id !== userId) : []
+				updateLocalUser(userId);
+				notifyDelete(pedido);
+				setEnviados(
+					(prev) => prev?.filter((u) => u.id !== userId) || []
 				);
 			}
 
 			return success;
 		},
-		[deletFetch, user?.id, updateUserPedidos]
+		[user?.id, updateLocalUser, notifyDelete]
+	);
+
+	const enviarPedido = useCallback(
+		async (userId: number) => {
+			if (!user?.id) return false;
+
+			const pedido = `${user.id},${userId}`;
+			const success = await requestService.createRequest(pedido);
+
+			if (success) {
+				// Atualiza localmente
+				const updatedPedidos = [
+					...(user.pedidos || []),
+					pedido.split(","),
+				];
+				setUser({ ...user, pedidos: updatedPedidos });
+				notifyCreate(pedido);
+			}
+
+			return success;
+		},
+		[user, setUser, notifyCreate]
+	);
+
+	// 🔥 Status do usuário (para NewChat)
+
+	const getUserStatus = useCallback(
+		(
+			userId: number,
+			chats?: any[]
+		): "sent" | "recieved" | "inChat" | undefined => {
+			if (!user?.pedidos) return undefined;
+
+			// Verifica se já está em chat
+			if (chats) {
+				const isInChat = chats.some(
+					(chat) =>
+						chat.tipo === "privado" &&
+						chat.chat_name ===
+							[recebidos, enviados]
+								.flat()
+								.find((u) => u?.id === userId)?.user_name
+				);
+				if (isInChat) return "inChat";
+			}
+
+			// Verifica pedidos
+			const pedido = user.pedidos.find((p) => p.includes(String(userId)));
+			if (pedido) {
+				return pedido[0] === String(user.id) ? "sent" : "recieved";
+			}
+
+			return undefined; // Retorna undefined em vez de null
+		},
+		[user?.pedidos, user?.id, recebidos, enviados]
 	);
 
 	return {
@@ -196,7 +231,12 @@ export function useRequests() {
 		rejeitarPedido,
 		aceitarPedido,
 		cancelarPedido,
+		enviarPedido,
 		loadRequests,
-		clearRequests,
+		getUserStatus,
+		clearRequests: useCallback(() => {
+			setRecebidos(null);
+			setEnviados(null);
+		}, []),
 	};
 }
