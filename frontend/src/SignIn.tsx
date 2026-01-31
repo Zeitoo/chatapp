@@ -130,29 +130,43 @@ function SignIn() {
 
 	return (
 		<>
-			<div className="background sign-in relative w-dvw h-dvh flex items-center justify-center">
+			<div
+				className="background sign-in relative w-dvw h-dvh flex items-center justify-center"
+				role="main" // indica a região principal da página
+			>
 				<div className="p-5 h-125 w-80 bg-wrapper-login md:w-125 rounded-l-lg bg-white z-10">
 					<div className="bg-img rounded-2xl"></div>
 				</div>
-				<div className="form-container h-125 w-90 flex z-10 flex-col bg-white rounded-r-lg">
+
+				<div
+					className="form-container h-125 w-90 flex z-10 flex-col bg-white rounded-r-lg"
+					role="region"
+					aria-label="Formulário de login">
 					<div className="mt-10">
 						<div className="flex justify-center">
 							<img
-								className=""
 								src={logo}
 								alt="Logotipo da plataforma"
+								tabIndex={0} // permite foco no logo para leitores de tela
 							/>
 						</div>
-						<h1 className="text-2xl font-bold text-center pt-10">
+						<h1
+							className="text-2xl font-bold text-center pt-10"
+							tabIndex={0}>
 							Bem-vindo de volta
 						</h1>
-						<p className="text-center text-gray-600 text-sm pt-2">
+						<p
+							className="text-center text-gray-600 text-sm pt-2"
+							tabIndex={0}>
 							Por favor, insira suas credenciais
 						</p>
 					</div>
+
 					<form
 						ref={formRef}
-						onSubmit={(e) => submitHandler(e)}>
+						onSubmit={(e) => submitHandler(e)}
+						role="form"
+						aria-labelledby="form-title">
 						<div className="px-5 py-3 pb-1">
 							<label
 								className="ml-1 text-sm font-medium"
@@ -161,18 +175,26 @@ function SignIn() {
 							</label>
 							<input
 								value={emailAddress}
-								onChange={(e) => {
-									setEmailAddress(e.target.value);
-								}}
-								placeholder="Endereco de e-mail"
+								onChange={(e) =>
+									setEmailAddress(e.target.value)
+								}
+								placeholder="Endereço de e-mail"
 								className="text py-10 px-3 outline-none border w-full border-gray-400 rounded-[7px]"
-								type="text"
+								type="email"
 								id="email"
 								name="email"
+								autoComplete="email"
+								aria-invalid={!!emailError.current?.textContent}
+								aria-describedby="email-error"
+								tabIndex={0} // foco natural
 							/>
 							<p
+								id="email-error"
 								ref={emailError}
-								className="text-red-600 error-msg text-sm px-1 pt-1"></p>
+								className="text-red-600 error-msg text-sm px-1 pt-1"
+								role="alert" // alerta para leitores de tela
+								aria-live="assertive"
+								tabIndex={-1}></p>
 						</div>
 
 						<div className="px-5 pb-6">
@@ -184,16 +206,20 @@ function SignIn() {
 							<div className="relative">
 								<input
 									value={password}
-									onChange={(e) => {
-										setPassword(e.target.value);
-									}}
+									onChange={(e) =>
+										setPassword(e.target.value)
+									}
 									className="text py-2 px-5 outline-none border w-full border-gray-900 rounded-full"
 									placeholder="Palavra-passe"
-									type={`${
-										hidePassword ? "password" : "text"
-									}`}
+									type={hidePassword ? "password" : "text"}
 									id="password"
 									name="password"
+									autoComplete="current-password"
+									aria-invalid={
+										!!passwordError.current?.textContent
+									}
+									aria-describedby="password-error"
+									tabIndex={0}
 								/>
 
 								<button
@@ -202,7 +228,13 @@ function SignIn() {
 										e.preventDefault();
 										setHidePassword(!hidePassword);
 									}}
-									className="show-password absolute top-1/2 right-2 -translate-y-1/2 scale-75">
+									className="show-password absolute top-1/2 right-2 -translate-y-1/2 scale-75"
+									aria-label={
+										hidePassword
+											? "Mostrar senha"
+											: "Ocultar senha"
+									}
+									tabIndex={0}>
 									{!hidePassword ? (
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -240,16 +272,22 @@ function SignIn() {
 								</button>
 							</div>
 							<p
+								id="password-error"
 								ref={passwordError}
-								className="text-red-600 error-msg text-sm px-1 pt-1"></p>
+								className="text-red-600 error-msg text-sm px-1 pt-1"
+								role="alert"
+								aria-live="assertive"
+								tabIndex={-1}></p>
 						</div>
+
 						<div className="px-6 text-[12px] flex justify-between items-center text-sm">
 							<div className="inline-flex items-center">
 								<input
-									className="check nline"
+									className="check inline"
 									type="checkbox"
 									name="remember"
 									id="remember"
+									tabIndex={0}
 								/>
 								<label
 									className="mx-1"
@@ -260,24 +298,31 @@ function SignIn() {
 
 							<a
 								className="text-indigo-900 font-medium"
-								href="#">
+								href="#"
+								title="Recuperar palavra-passe"
+								tabIndex={0}>
 								Recuperar palavra-passe
 							</a>
 						</div>
+
 						<div className="p-5 py-2">
 							<button
 								className="btn btn-blue w-full"
-								type="submit">
+								type="submit"
+								tabIndex={0}>
 								Continuar
 							</button>
 						</div>
 					</form>
 
-					<p className="text-sm text-center">
-						Nao tem uma conta?{" "}
+					<p
+						className="text-sm text-center"
+						tabIndex={0}>
+						Não tem uma conta?{" "}
 						<Link
 							className="font-medium text-indigo-950"
-							to={"/signup"}>
+							to={"/signup"}
+							tabIndex={0}>
 							Criar conta
 						</Link>
 					</p>

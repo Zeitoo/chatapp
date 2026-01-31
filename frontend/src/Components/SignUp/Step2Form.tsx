@@ -16,8 +16,14 @@ export function Step2Form({
 			onSubmit={(e) => {
 				e.preventDefault();
 				onNext();
-			}}>
-			<div className="px-5 max-h-82 avatar-wrapper rounded-4xl overflow-y-auto overflow-x-hidden py-5 pb-0">
+			}}
+			role="form"
+			aria-label="Seleção de avatar">
+			<div
+				className="px-5 max-h-82 avatar-wrapper rounded-4xl overflow-y-auto overflow-x-hidden py-5 pb-0"
+				role="region"
+				aria-label="Lista de avatares disponíveis"
+				tabIndex={0}>
 				<div className="grid pb-10 grid-cols-3 gap-3">
 					{avatars.map((avatarNumber) => (
 						<button
@@ -29,7 +35,9 @@ export function Step2Form({
 									? "ring-4 ring-blue-500"
 									: "hover:ring-2 hover:ring-gray-300"
 							}`}
-							aria-label={`Selecionar avatar ${avatarNumber}`}>
+							aria-label={`Selecionar avatar ${avatarNumber}`}
+							aria-pressed={formData.avatar === avatarNumber} // indica seleção
+							tabIndex={0}>
 							<img
 								className="w-22 aspect-square rounded-full"
 								src={`/Avatars/avatar (${avatarNumber}).png`}
@@ -45,12 +53,14 @@ export function Step2Form({
 				<button
 					type="button"
 					onClick={onBack}
-					className="btn btn-gray w-full">
+					className="btn btn-gray w-full"
+					tabIndex={0}>
 					Anterior
 				</button>
 				<button
 					type="submit"
-					className="btn btn-blue w-full">
+					className="btn btn-blue w-full"
+					tabIndex={0}>
 					Criar conta
 				</button>
 			</div>

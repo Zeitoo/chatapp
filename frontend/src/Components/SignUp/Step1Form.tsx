@@ -23,8 +23,13 @@ export function Step1Form({
 				e.preventDefault();
 				console.log(getError("primeiroNome"));
 				onNext();
-			}}>
-			<div className="px-5 py-2 pb-0 grid grid-cols-2 gap-4">
+			}}
+			role="form"
+			aria-label="Formulário de cadastro">
+			<div
+				className="px-5 py-2 pb-0 grid grid-cols-2 gap-4"
+				role="group"
+				aria-label="Informações pessoais">
 				<div>
 					<label
 						className="ml-1 text-sm font-medium"
@@ -43,14 +48,21 @@ export function Step1Form({
 						type="text"
 						id="first-name"
 						name="primeiroNome"
-						/*
 						required
 						minLength={2}
 						maxLength={30}
-						pattern="[a-zA-ZÀ-ÿ\s\-']+"*/
+						pattern="[a-zA-ZÀ-ÿ\s\-']+"
+						aria-invalid={!!getError("primeiroNome")}
+						aria-describedby="primeiroNome-error"
+						tabIndex={0}
 					/>
 					{getError("primeiroNome") && (
-						<p className="text-red-600 error-msg  text-sm px-1 pt-1">
+						<p
+							id="primeiroNome-error"
+							className="text-red-600 error-msg text-sm px-1 pt-1"
+							role="alert"
+							aria-live="assertive"
+							tabIndex={-1}>
 							{getError("primeiroNome")}
 						</p>
 					)}
@@ -76,16 +88,27 @@ export function Step1Form({
 						minLength={2}
 						maxLength={20}
 						pattern="[a-zA-ZÀ-ÿ\s\-']+"
+						aria-invalid={!!getError("apelido")}
+						aria-describedby="apelido-error"
+						tabIndex={0}
 					/>
 					{getError("apelido") && (
-						<p className="text-red-600 error-msg  text-sm px-1 pt-1">
+						<p
+							id="apelido-error"
+							className="text-red-600 error-msg text-sm px-1 pt-1"
+							role="alert"
+							aria-live="assertive"
+							tabIndex={-1}>
 							{getError("apelido")}
 						</p>
 					)}
 				</div>
 			</div>
 
-			<div className="px-5 py-2">
+			<div
+				className="px-5 py-2"
+				role="group"
+				aria-label="Informações de contato">
 				<label
 					className="ml-1 text-sm font-medium"
 					htmlFor="email">
@@ -103,15 +126,28 @@ export function Step1Form({
 					onChange={(e) => onChange("emailAddress", e.target.value)}
 					required
 					maxLength={50}
+					pattern="^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$"
+					autoComplete="email"
+					aria-invalid={!!getError("emailAddress")}
+					aria-describedby="email-error"
+					tabIndex={0}
 				/>
 				{getError("emailAddress") && (
-					<p className="text-red-600 error-msg  text-sm px-1 pt-1">
+					<p
+						id="email-error"
+						className="text-red-600 error-msg text-sm px-1 pt-1"
+						role="alert"
+						aria-live="assertive"
+						tabIndex={-1}>
 						{getError("emailAddress")}
 					</p>
 				)}
 			</div>
 
-			<div className="px-5 pb-0">
+			<div
+				className="px-5 pb-0"
+				role="group"
+				aria-label="Senha">
 				<label
 					className="ml-1 text-sm font-medium"
 					htmlFor="password">
@@ -132,6 +168,9 @@ export function Step1Form({
 						minLength={6}
 						maxLength={18}
 						title="Deve conter letras maiúsculas, minúsculas, números e caracteres especiais"
+						aria-invalid={!!getError("password")}
+						aria-describedby="password-error"
+						tabIndex={0}
 					/>
 
 					<button
@@ -140,7 +179,11 @@ export function Step1Form({
 							e.preventDefault();
 							setHidePassword(!hidePassword);
 						}}
-						className="show-password absolute top-1/2 right-2 -translate-y-1/2 scale-75">
+						className="show-password absolute top-1/2 right-2 -translate-y-1/2 scale-75"
+						aria-label={
+							hidePassword ? "Mostrar senha" : "Ocultar senha"
+						}
+						tabIndex={0}>
 						{!hidePassword ? (
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -178,25 +221,31 @@ export function Step1Form({
 					</button>
 				</div>
 				{getError("password") && (
-					<p className="text-red-600 error-msg text-sm px-1 pt-1">
+					<p
+						id="password-error"
+						className="text-red-600 error-msg text-sm px-1 pt-1"
+						role="alert"
+						aria-live="assertive"
+						tabIndex={-1}>
 						{getError("password")}
 					</p>
 				)}
 
-				{!getError("password") ? (
-					<div className="text-xs text-gray-600 mt-2">
+				{!getError("password") && (
+					<div
+						className="text-xs text-gray-600 mt-2"
+						tabIndex={0}>
 						<p>• Mínimo 8 caracteres</p>
 						<p>• Números e caracteres especiais</p>
 					</div>
-				) : (
-					""
 				)}
 			</div>
 
 			<div className="p-5 py-0">
 				<button
 					type="submit"
-					className="btn btn-blue w-full relative top-2">
+					className="btn btn-blue w-full relative top-2"
+					tabIndex={0}>
 					Prosseguir
 				</button>
 			</div>

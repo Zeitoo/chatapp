@@ -297,11 +297,17 @@ export default function NewChat() {
 	}, []);
 
 	return (
-		<div className="new-chat max-h-dvh flex flex-col  fade">
+		<div className="new-chat max-h-dvh flex flex-col fade">
 			<div className="p-5 mb-5 flex items-center gap-4">
 				<div
 					onClick={backButtonHandler}
-					className="back-btn ml-3.5">
+					className="back-btn ml-3.5"
+					role="button"
+					tabIndex={0}
+					aria-label="Voltar"
+					onKeyPress={(e) =>
+						e.key === "Enter" && backButtonHandler()
+					}>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
@@ -325,51 +331,61 @@ export default function NewChat() {
 					onChange={inputChangeHandler}
 					className="chat-search text-sm rounded-[500px] w-full outline-0 p-5 py-2"
 					type="text"
-					placeholder="Procure por um usuario"
+					placeholder="Procure por um usuário"
 					maxLength={50}
+					aria-label="Buscar usuário"
 				/>
 			</div>
 
-			<div className="scroll-thin px-6 flex-1 mt-4 overflow-y-auto">
+			<div
+				className="scroll-thin px-6 flex-1 mt-4 overflow-y-auto"
+				role="list"
+				aria-live="polite"
+				aria-label="Resultados da busca">
 				{loading && <p className="text-sm opacity-60">Buscando...</p>}
 
 				{results.length > 0 ? (
 					results
-						.filter((element) => element.id != user?.id)
-						.map((u) => {
-							return (
-								<div
-									key={u.id}
-									className={`p-4 my-2 ${
-										u.allready === "inChat" ||
-										u.allready === "sent" ||
-										u.allready === "recieved"
-											? "bg-green-1"
-											: "profile"
-									} cursor-pointer rounded-lg flex justify-between hover:opacity-80`}>
-									<div className="flex items-center gap-5">
-										<div className="w-20">
-											<img
-												className="w-full no-select rounded-full"
-												src={`/Avatars/avatar (${u?.profile_img}).png`}
-											/>
-										</div>
-										<div>
-											<p className="font-medium text-lg">
-												{u.user_name}
-											</p>
-											<p className="text-xs opacity-60">
-												{u.email_address}
-											</p>
-										</div>
+						.filter((element) => element.id !== user?.id)
+						.map((u) => (
+							<div
+								key={u.id}
+								className={`p-4 my-2 ${
+									u.allready === "inChat" ||
+									u.allready === "sent" ||
+									u.allready === "recieved"
+										? "bg-green-1"
+										: "profile"
+								} cursor-pointer rounded-lg flex justify-between hover:opacity-80`}
+								role="listitem"
+								tabIndex={0}>
+								<div className="flex items-center gap-5">
+									<div className="w-20">
+										<img
+											className="w-full no-select rounded-full"
+											src={`/Avatars/avatar (${u?.profile_img}).png`}
+											alt={`Avatar de ${u.user_name}`}
+										/>
 									</div>
-									{u?.allready === "recieved" ? (
-										<div className="flex gap-3 items-center">
+									<div>
+										<p className="font-medium text-lg">
+											{u.user_name}
+										</p>
+										<p className="text-xs opacity-60">
+											{u.email_address}
+										</p>
+									</div>
+								</div>
+
+								<div className="flex gap-3 items-center">
+									{u?.allready === "recieved" && (
+										<>
 											<button
-												onClick={() => {
-													rejeitarPedido(u.id);
-												}}
-												className="cursor">
+												onClick={() =>
+													rejeitarPedido(u.id)
+												}
+												aria-label={`Rejeitar pedido de ${u.user_name}`}
+												tabIndex={0}>
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													fill="none"
@@ -385,10 +401,11 @@ export default function NewChat() {
 												</svg>
 											</button>
 											<button
-												onClick={() => {
-													aceitarPedido(u.id);
-												}}
-												className="cursor">
+												onClick={() =>
+													aceitarPedido(u.id)
+												}
+												aria-label={`Aceitar pedido de ${u.user_name}`}
+												tabIndex={0}>
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													fill="none"
@@ -403,69 +420,62 @@ export default function NewChat() {
 													/>
 												</svg>
 											</button>
-										</div>
-									) : (
-										""
+										</>
 									)}
 
-									{u?.allready === "sent" ? (
-										<div className="flex gap-3 items-center">
-											<button
-												onClick={() => {
-													cancelarPedido(u.id);
-												}}
-												className="cursor">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													fill="none"
-													viewBox="0 0 24 24"
-													strokeWidth={1.5}
-													stroke="currentColor"
-													className="size-6">
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M6 18 18 6M6 6l12 12"
-													/>
-												</svg>
-											</button>
-										</div>
-									) : (
-										""
+									{u?.allready === "sent" && (
+										<button
+											onClick={() => cancelarPedido(u.id)}
+											aria-label={`Cancelar pedido enviado a ${u.user_name}`}
+											tabIndex={0}>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												strokeWidth={1.5}
+												stroke="currentColor"
+												className="size-6">
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M6 18 18 6M6 6l12 12"
+												/>
+											</svg>
+										</button>
 									)}
 
-									{!u.allready ? (
-										<div className="flex items-center">
-											<button
-												onClick={(e) => {
-													e.preventDefault();
-													putPedido(u.id);
-												}}
-												className="cursor">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													fill="none"
-													viewBox="0 0 24 24"
-													strokeWidth={1.5}
-													stroke="currentColor"
-													className="size-6">
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
-													/>
-												</svg>
-											</button>
-										</div>
-									) : (
-										""
+									{!u.allready && (
+										<button
+											onClick={(e) => {
+												e.preventDefault();
+												putPedido(u.id);
+											}}
+											aria-label={`Enviar pedido para ${u.user_name}`}
+											tabIndex={0}>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												strokeWidth={1.5}
+												stroke="currentColor"
+												className="size-6">
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
+												/>
+											</svg>
+										</button>
 									)}
 								</div>
-							);
-						})
+							</div>
+						))
 				) : (
-					<p className="text-center mt-4 font-bold">
-						User nao encontrado
+					<p
+						className="text-center mt-4 font-bold"
+						role="status"
+						aria-live="polite">
+						Usuário não encontrado
 					</p>
 				)}
 			</div>

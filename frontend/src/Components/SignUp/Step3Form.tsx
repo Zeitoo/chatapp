@@ -7,7 +7,10 @@ export function Step3Form({ apiError, loading, onNext }: SignUpStepProps) {
 		<div className="px-5">
 			{!apiError ? (
 				<>
-					<p className="text-gray-700 text-sm mt-10 text-center font-medium">
+					<p
+						className="text-gray-700 text-sm mt-10 text-center font-medium"
+						role="status"
+						aria-live="polite">
 						Sua conta está sendo criada. Você será redirecionado
 						para a página de login em breve.
 					</p>
@@ -15,7 +18,10 @@ export function Step3Form({ apiError, loading, onNext }: SignUpStepProps) {
 						{loading ? (
 							<Loader />
 						) : (
-							<div className="text-green-600 font-medium">
+							<div
+								className="text-green-600 font-medium"
+								role="status"
+								aria-live="polite">
 								✓ Conta criada com sucesso!
 							</div>
 						)}
@@ -23,13 +29,19 @@ export function Step3Form({ apiError, loading, onNext }: SignUpStepProps) {
 				</>
 			) : (
 				<>
-					<p className="text-gray-700 text-sm mt-10 text-center">
+					<p
+						className="text-gray-700 text-sm mt-10 text-center"
+						role="alert"
+						aria-live="assertive">
 						Houve um erro ao criar sua conta:{" "}
 						<span className="font-bold text-red-600">
 							{apiError}
 						</span>
 					</p>
-					<p className="text-gray-700 text-sm mt-1 text-center">
+					<p
+						className="text-gray-700 text-sm mt-1 text-center"
+						role="alert"
+						aria-live="assertive">
 						Tente novamente ou entre em contato com o suporte.
 					</p>
 
@@ -37,7 +49,8 @@ export function Step3Form({ apiError, loading, onNext }: SignUpStepProps) {
 						<button
 							onClick={onNext}
 							className="btn btn-blue w-full"
-							type="button">
+							type="button"
+							tabIndex={0}>
 							Tentar novamente
 						</button>
 					</div>

@@ -91,12 +91,13 @@ function Direct() {
 					className={`fade flex flex-col max-h-dvh ${
 						openedChat ? "direct-sidebar" : "w-full"
 					} p-4 h-full bg-castanho md:w-125 text-sm`}>
-					<div className="flex justify-between  items-center my-5">
-						<div className="avatar flex justify-center  items-center gap-2">
+					<div className="flex justify-between items-center my-5">
+						<div className="avatar flex justify-center items-center gap-2">
 							<div className="avatar-profile overflow-hidden h-15 aspect-square rounded-[200px] bg-indigo-500">
 								<img
 									className="w-full no-select"
 									src={`/Avatars/avatar (${user?.profile_img}).png`}
+									alt={`Avatar de ${user?.user_name}`}
 								/>
 							</div>
 							<p
@@ -106,11 +107,11 @@ function Direct() {
 								{user?.user_name}
 							</p>
 						</div>
-						{openedChat ? (
-							""
-						) : (
+						{!openedChat && (
 							<div className="new-msg">
-								<Link to={"new_chat"}>
+								<Link
+									to={"new_chat"}
+									aria-label="Criar novo chat">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
@@ -128,42 +129,46 @@ function Direct() {
 							</div>
 						)}
 					</div>
-					<div className="">
+
+					<div>
 						<input
-							className={`chat-search text-sm rounded-[500px] w-full outline-0  ${
+							className={`chat-search text-sm rounded-[500px] w-full outline-0 ${
 								openedChat
 									? "open-chat-search w-0 opacity-0 md:w-full md:opacity-100 md:px-5 py-2"
 									: "p-5 py-2"
-							} `}
+							}`}
 							type="text"
 							name="chat"
 							id="chat"
-							placeholder="Search"
+							placeholder="Pesquisar chats"
+							aria-label="Pesquisar chats"
 						/>
 					</div>
-					<div className="my-5  flex justify-between items-center">
-						<>
-							<h1
-								className={`no-select ${
-									openedChat ? "hidden md:block" : ""
-								} font-medium`}>
-								Mensagens
-							</h1>
-							<Link
-								className={`${
-									openedChat ? "hidden md:block" : ""
-								} ${
-									hasPedidos ? "text-green-400 font-bold" : ""
-								}`}
-								to={"pedidos"}>
-								Pedidos
-							</Link>
-						</>
+
+					<div className="my-5 flex justify-between items-center">
+						<h1
+							className={`no-select ${
+								openedChat ? "hidden md:block" : ""
+							} font-medium`}>
+							Mensagens
+						</h1>
+						<Link
+							className={`${
+								openedChat ? "hidden md:block" : ""
+							} ${hasPedidos ? "text-green-400 font-bold" : ""}`}
+							to={"pedidos"}
+							aria-label="Visualizar pedidos">
+							Pedidos
+						</Link>
 					</div>
-					<div className="scroll-thin flex-1 overflow-y-auto">
+
+					<div
+						className="scroll-thin flex-1 overflow-y-auto"
+						role="list"
+						aria-label="Lista de chats">
 						<div className="flex flex-col">
 							<hr
-								className={`opacity-0  ${
+								className={`opacity-0 ${
 									openedChat ? "md:opacity-0 opacity-100" : ""
 								}`}
 							/>
@@ -195,11 +200,19 @@ function Direct() {
 											openedChat == element.id
 												? "cinza-2"
 												: "hover:bg-cinza-2 cursor-pointer"
-										}`}>
+										}`}
+										role="listitem"
+										aria-current={
+											openedChat === element.id
+												? "true"
+												: undefined
+										}
+										tabIndex={0}>
 										<div className="profileImg h-11 aspect-square mr-2 rounded-[200px]">
 											<img
 												className="no-select w-full ml-1 aspect-square rounded-[200px]"
 												src={`/Avatars/avatar (${element.profile_img}).png`}
+												alt={`Avatar de ${element.chat_name}`}
 											/>
 										</div>
 
@@ -218,15 +231,12 @@ function Direct() {
 										</div>
 
 										<div className="items-center ml-auto">
-											{openedChat ? (
-												""
-											) : (
+											{!openedChat && (
 												<p className="text-xs text-gray-500">
 													{hora}
 												</p>
 											)}
-
-											<div className="badge"></div>
+											<div className="badge" />
 										</div>
 									</div>
 								);
