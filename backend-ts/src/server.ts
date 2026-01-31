@@ -3,7 +3,6 @@ import { createApp } from "./app";
 import { setupWebSocket } from "./websocket/server";
 import { config } from "./config/env";
 
-
 export function startServer() {
 	const app = createApp();
 
@@ -42,7 +41,7 @@ export function startServer() {
 		setTimeout(() => {
 			console.error("Servidor forçado a encerrar devido a timeout.");
 			process.exit(1);
-		}, 5000);
+		}, 2000);
 	};
 
 	process.on("SIGTERM", shutdown);

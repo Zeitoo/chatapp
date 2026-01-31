@@ -4,11 +4,22 @@ import cookieParser from "cookie-parser";
 import { corsOptions } from "./config/cors";
 import routes from "./routes";
 import { Request, Response } from "express";
+import rateLimit from "express-rate-limit";
+
+// Configuração do rate limiter
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutos
+	max: 100, // 100 requisições por IP
+	standardHeaders: true, // informa limites no cabeçalho
+	legacyHeaders: false, // desativa cabeçalhos antigos
+	message: "Você excedeu o número de requisições, tente mais tarde.",
+});
 
 export function createApp() {
 	const app = express();
 
 	app.use(express.json());
+	app.use(limiter);
 	app.use(cors(corsOptions));
 	app.use(cookieParser());
 

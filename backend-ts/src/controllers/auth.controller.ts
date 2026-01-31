@@ -44,10 +44,10 @@ export class AuthController {
 			.update(refreshToken)
 			.digest("hex");
 
-		if (!user.id || !user.user_name) return;
+		if (!user.id || !user.user_name) return res.status(400).json({message: "user nao foi encontrado na DB"});
 
 		const response = await putRefreshToken(refreshTokenHash, user.id);
-		if (!response) return;
+		if (!response) return res.status(400).json({message: "Houve um erro no login."})
 
 		const id = user.id;
 		const user_name = user.user_name;
@@ -78,7 +78,7 @@ export class AuthController {
 
 	static async signup(req: Request, res: Response) {
 		const user = req.body;
-		if (!user.userName || !user.emailAddress || !user.password) return;
+		if (!user.userName || !user.emailAddress || !user.password) return res.status(200).json({message: "Dados invalidos ou incompletos"});
 
 		// Hash da senha antes de armazenar
 		user.password = await hashPassword(user.password);
@@ -141,7 +141,7 @@ export class AuthController {
 		}
 
 		const resposta = await putRefreshToken(refreshTokenHash, user.id);
-		if (!resposta) return;
+		if (!resposta) return res.status(400).json({message: "Errro ao criar refresh token."});
 
 		res.cookie("refresh_token", refreshToken, {
 			httpOnly: true,

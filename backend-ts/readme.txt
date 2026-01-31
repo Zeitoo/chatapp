@@ -354,19 +354,8 @@ npm run dev  # mostra todos os logs
 # Testar conexão WebSocket
 wscat -c "ws://localhost:3000?userId=1"
 
-# Verificar saúde da API
-curl http://localhost:3000/
-```
----
-
-## **Considerações de Segurança**
-3. **CORS:** Configurado apenas para origem específica
-4. **Cookies:** HttpOnly para prevenir XSS
-
----
 
 ## **Melhorias Futuras**
-2. [ ] Adicionar rate limiting
 4. [ ] Adicionar logging estruturado
 5. [ ] Criar documentação Swagger/OpenAPI
 6. [ ] Adicionar testes unitários e de integração

@@ -25,6 +25,7 @@ export class ChatController {
 			const chatsWithMsgs = await enrichChatsWithData(user.id);
 			return res.status(200).json(chatsWithMsgs);
 		}
+		return res.status(401).json({ message: "Credencias ausentes..." });
 	}
 
 	static async newChat(req: AuthRequest, res: Response) {
@@ -53,7 +54,7 @@ export class ChatController {
 		}
 		const criado = await putNewChat(generateId(10), users);
 		if (!criado) {
-			return res.status(500).json({ message: "Erro ao criar chat" });
+			return res.status(400).json({ message: "Erro ao criar chat" });
 		}
 
 		await deletePedido(pedido);

@@ -1,10 +1,9 @@
 // models.ts
-import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../config/config_db";
 import crypto from "crypto";
 import { RefreshTokenWithUser } from "../Types";
 import dotenv from "dotenv";
-
+import { query } from "../utils/helpers";
 dotenv.config();
 
 type AnyRow = Record<string, any>;
@@ -34,16 +33,6 @@ export interface Chat {
 	chat_name: string;
 	profile_img: number;
 }
-
-/* Helpers */
-async function query<T = RowDataPacket[]>(
-	sql: string,
-	params?: any[]
-): Promise<T> {
-	const [rows] = await pool.query<RowDataPacket[]>(sql, params);
-	return rows as T;
-}
-/* Queries */
 
 export const getChats = async (userId: number): Promise<Chat[]> => {
 	const rows = await query<Chat[]>(
@@ -104,17 +93,6 @@ export const getUser = async (userId: number): Promise<User[]> => {
 	return rows;
 };
 
-export const getUsersIdByToken = async (
-	token: string
-): Promise<{ user_id: number }> => {
-	const [rows] = await query<[{ user_id: number }]>(
-		`SELECT user_id FROM tokens WHERE token = ?;`,
-		[token]
-	);
-
-	return rows;
-};
-
 export const getUsersByEmail = async (email: string): Promise<User[]> => {
 	const rows = await query<User[]>(
 		`SELECT * FROM users WHERE email_address = ?;`,
@@ -124,28 +102,7 @@ export const getUsersByEmail = async (email: string): Promise<User[]> => {
 	return rows;
 };
 
-export const getAccessToken = async (token: string): Promise<AnyRow[]> => {
-	const rows = await query<AnyRow[]>(
-		`SELECT * FROM tokens WHERE token = ?;`,
-		[token]
-	);
-
-	return rows;
-};
-
 export const getUsersByName = async (
-	userName: string
-): Promise<User[] | false> => {
-	const rows = await query<User[]>(
-		`SELECT * FROM users WHERE user_name = ?;`,
-		[userName]
-	);
-
-	if (!rows || rows.length === 0) return false;
-	return rows;
-};
-
-export const getUsersByNameS = async (
 	userName: string
 ): Promise<User[] | false> => {
 	const rows = await query<User[]>(
@@ -186,18 +143,6 @@ export const getPedido = async (
 	const [rows] = await query<[] | [{ fromto: string }]>(
 		`SELECT * FROM pedidos WHERE fromto = ?;`,
 		[pedido]
-	);
-
-	return rows;
-};
-
-export const putAccessToken = async (
-	token: string,
-	userId: number
-): Promise<AnyRow> => {
-	const rows = await query<AnyRow[]>(
-		`INSERT INTO tokens (token, user_id) VALUES (?, ?);`,
-		[token, userId]
 	);
 
 	return rows;
@@ -378,14 +323,12 @@ export const putNewChat = async (
 		return true;
 	} catch (error) {
 		await conn.rollback();
-		console.log(error)
+		console.log(error);
 		return false;
 	} finally {
 		conn.release();
 	}
 };
-
-/* ================= USERS ================= */
 
 export const getUsersByIds = async (userIds: number[]) => {
 	if (!userIds.length) return [];
@@ -398,8 +341,6 @@ export const getUsersByIds = async (userIds: number[]) => {
 		userIds
 	);
 };
-
-/* ================= CHATS ================= */
 
 export const getChatsByUser = async (userId: number) => {
 	return query(
@@ -423,8 +364,6 @@ export const getChatUsersByChatIds = async (chatIds: string[]) => {
 		chatIds
 	);
 };
-
-/* ================= MESSAGES ================= */
 
 export const getMessagesByChatIds = async (chatIds: string[]) => {
 	if (!chatIds.length) return [];

@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-import {
-	getUsersByNameS,
-	getUsers,
-} from "../models/models";
+import { getUsersByName, getUsers } from "../models/models";
 
 export class UserController {
 	static async searchByName(req: Request, res: Response) {
@@ -14,7 +11,7 @@ export class UserController {
 			return res.status(400).json({ message: "user required" });
 		}
 
-		const users = await getUsersByNameS(userName);
+		const users = await getUsersByName(userName);
 		if (!users || users.length === 0) {
 			return res.status(404).json({ message: "user not found" });
 		}

@@ -4,6 +4,8 @@ import {
 	getChatParticipants,
 	getUser,
 } from "../models/models";
+import type { RowDataPacket } from "mysql2/promise";
+import { pool } from "../config/config_db";
 
 /**
  * Enriquece os chats com mensagens e participantes.
@@ -54,4 +56,12 @@ export async function enrichChatsWithData(userId: number) {
 	);
 
 	return chats;
+}
+
+export async function query<T = RowDataPacket[]>(
+	sql: string,
+	params?: any[]
+): Promise<T> {
+	const [rows] = await pool.query<RowDataPacket[]>(sql, params);
+	return rows as T;
 }

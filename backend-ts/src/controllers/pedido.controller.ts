@@ -24,7 +24,7 @@ export class PedidoController {
 		if (!pedido.includes(user?.id))
 			return res
 				.status(401)
-				.json({ message: "User nao autenticado...." });
+				.json({ message: "User nao autenticado ou pedido invalido" });
 
 		const response = await deletePedido(pedido);
 
